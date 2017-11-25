@@ -1,14 +1,87 @@
 
 jQuery(document).ready(function(){
+
+   // detect fragment
+   if( window.location.hash ) {
+      var fragment = window.location.hash.replace(/^#/,'');
+      if( fragment.match( /;/ ) ) {
+         var l1 = fragment.split( /;/ );
+         var id = l1[0];
+         var l2 = l1[1].split(/=/);
+         if( l2[0] == 'chars' ) {
+            var range = l2[1].split( /-/ );
+            insertAtOffset( jQuery('#'+id).get(0), range[0], jQuery("<div class='ultralink-insert' style='display:inline-block;width:10px;height:10px; background-color: green; margin: 0 0em;'></div>").get(0));
+            insertAtOffset( jQuery('#'+id).get(0), range[1], jQuery("<div class='ultralink-insert' style='display:inline-block;width:10px;height:10px; background-color: red; margin: 0 0em;'></div>").get(0));
+         }
+      }
+   }
+   // assumes DOM nodes not jQuery
+   function insertAtOffset(container, offset, insert ) {
+
+      var kids = container.childNodes;
+      for( var i=0; i<kids.length; i++ ) {
+        var kid = kids[i];
+        console.log(container,i,kid,offset);
+        if( offset == 0 ) {
+          container.insertBefore(insert,kid);
+          return;
+        }
+
+        var kidLength = textLength(kid);
+        if( kidLength > offset ) {
+           // the offset is inside this 
+           if( kid.nodeName == "#text" ) {
+              container.insertBefore(insert,kid);
+           } else {
+              insertAtOffset( kid, offset, insert );
+           }
+           return;
+        }
+        offset -= kidLength;
+      }
+      // how to handle if the selection is the very last character?
+   }
+
+
+
+
+   // initialise selection capture
    var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
+   url = "http://lemur.ecs.soton.ac.uk/~cjg/link/";
    var context = jQuery( ".post.full" );
-   context.css( 'border','dotted 1px purple' );
-   //alert( url );
+
+
+   var popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em;  width:90%; border:solid 2px black; background-color: #ccc'></div>" ).hide();
+   jQuery('body').append(popup);
+   // don't hide the popup when we click inside it
+   popup.mouseup( function() { return false; } );
+
+   jQuery('body').mouseup( function() {
+      popup.hide();
+      return true; // propagate
+   });
    context.mouseup( function() {
-        var selection = window.getSelection();
-	
-	var fromChar = charOffset( context.get(0), selection.anchorNode);
-	alert( fromChar+"+"+selection.anchorOffset );
+      var selection = window.getSelection();
+                                
+      var fromOff = charOffset( context.get(0), selection.anchorNode) 
+      var toOff = charOffset( context.get(0), selection.focusNode);
+      if( fromOff == -1 || toOff == -1 ) {
+         // out of scope
+         return true; // propagate
+      }
+      var fromChar = fromOff + selection.anchorOffset;
+      var toChar = toOff + selection.focusOffset;
+      if( fromChar > toChar ) {
+         var tmp = fromChar;
+         fromChar = toChar;
+         toChar = tmp;
+      }
+
+      var link = url+'#'+context.attr('id')+";chars="+fromChar+"-"+toChar;
+      popup.html( link );
+      popup.show();
+         
+      return false; // don't propagate
    });
 
    // assumes DOM nodes not jQuery
@@ -54,7 +127,7 @@ jQuery(document).ready(function(){
     function textLength( el ) {
       if( el.nodeName == "#text" ) {
         var text = el.textContent;
-	//console.log( "TEXT: "+text );
+        //console.log( "TEXT: "+text );
         return text.length;
       }
       var chars = 0;
