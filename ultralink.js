@@ -1,6 +1,11 @@
 
 jQuery(document).ready(function(){
 
+/*
+   for( var i =0;i<100;++i ) {
+            insertAtOffset( jQuery('#post-content-1685').get(0), i, makeInsert('blue',i) );
+   }
+*/
    // detect fragment
    if( window.location.hash ) {
       var fragment = window.location.hash.replace(/^#/,'');
@@ -10,10 +15,13 @@ jQuery(document).ready(function(){
          var l2 = l1[1].split(/=/);
          if( l2[0] == 'chars' ) {
             var range = l2[1].split( /-/ );
-            insertAtOffset( jQuery('#'+id).get(0), range[0], jQuery("<div class='ultralink-insert' style='display:inline-block;width:10px;height:10px; background-color: green; margin: 0 0em;'></div>").get(0));
-            insertAtOffset( jQuery('#'+id).get(0), range[1], jQuery("<div class='ultralink-insert' style='display:inline-block;width:10px;height:10px; background-color: red; margin: 0 0em;'></div>").get(0));
+            insertAtOffset( jQuery('#'+id).get(0), range[0], makeInsert('green','start') );
+            insertAtOffset( jQuery('#'+id).get(0), range[1], makeInsert('red','end') );
          }
       }
+   }
+   function makeInsert( col, text ) {
+      return jQuery( "<div class='ultralink-insert ultralink-ignore' style='display:inline-block;font-weight:normal;font-size:small; color: "+col+";padding:0px 0.25em;border: solid 2px "+col+"; margin: 0 0em;background-color:#000'>"+text+"</div>").get(0);
    }
    // assumes DOM nodes not jQuery
    function insertAtOffset(container, offset, insert ) {
@@ -21,17 +29,45 @@ jQuery(document).ready(function(){
       var kids = container.childNodes;
       for( var i=0; i<kids.length; i++ ) {
         var kid = kids[i];
-        console.log(container,i,kid,offset);
         if( offset == 0 ) {
           container.insertBefore(insert,kid);
           return;
+        }
+        if( kid.className && kid.className.match( /ultralink-ignore/ ) ) {
+           continue;
+        }
+
+        // is this needed as the textlength of such a node should be zero
+        if( kid.nodeName == "#text" && kid.textContent.match( /^\s*$/ ) ) {
+           continue;
         }
 
         var kidLength = textLength(kid);
         if( kidLength > offset ) {
            // the offset is inside this 
+	   if( kid.nodeType==1 && kid.hasAttribute('data-length') ) {
+              var textNode = document.createTextNode( kid.innerText );
+              container.insertBefore( textNode, kid);
+              kid.remove();
+              kid = textNode; 
+           }
            if( kid.nodeName == "#text" ) {
+              var text = kid.nodeValue;
+
+              var t1 = text.substr(0,offset);
+              var s1 = document.createElement('span');
+              s1.setAttribute('data-length',t1.length);
+              s1.appendChild( document.createTextNode( t1 ));
+
+              var t2 = text.substr(offset,text.length-offset);
+              var s2 = document.createElement('span');
+              s2.setAttribute('data-length',t2.length);
+              s2.appendChild( document.createTextNode( t2 ));
+
+              container.insertBefore(s1,kid);
               container.insertBefore(insert,kid);
+              container.insertBefore(s2,kid);
+              kid.remove(); 
            } else {
               insertAtOffset( kid, offset, insert );
            }
@@ -102,8 +138,11 @@ jQuery(document).ready(function(){
       //console.log( "KIDCOUNT: "+kids.length );
       for( var i=0; i<kids.length; i++ ) {
         var kid = kids[i];
-        //console.log( "KID:"+i+" -- "+kid.nodeName, kid );
+        if( kid.className && kid.className.match( /ultralink-ignore/ ) ) {
+           continue;
+        }
         if( kid == thing ) { return offset; }
+        
         if( isAncestor( kid, thing ) ) {
           return offset + charOffset( kid, thing );
         }
@@ -125,9 +164,17 @@ jQuery(document).ready(function(){
     }
 
     function textLength( el ) {
+      if( el.className && el.className.match( /ultralink-ignore/ ) ) {
+         return 0;
+      }
+      if( el.nodeType==1 && el.hasAttribute('data-length') ) {
+         return parseInt( el.getAttribute('data-length'), 10 );
+      }
       if( el.nodeName == "#text" ) {
         var text = el.textContent;
-        //console.log( "TEXT: "+text );
+        if( text.match( /^\s*$/ ) ) {
+           return 0;
+        }
         return text.length;
       }
       var chars = 0;
