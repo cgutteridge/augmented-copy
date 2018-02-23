@@ -20,10 +20,13 @@ jQuery(document).ready(function(){
          }
       }
    }
+
+   /* creates an insert to be placed in HTML but ignored by our "character counting" tools. */
    function makeInsert( col, text ) {
       return jQuery( "<div class='ultralink-insert ultralink-ignore' style='display:inline-block;font-weight:normal;font-size:small; color: "+col+";padding:0px 0.25em;border: solid 2px "+col+"; margin: 0 0em;background-color:#000'>"+text+"</div>").get(0);
    }
-   // assumes DOM nodes not jQuery
+
+   // container is a DOM node not jQuery, as we need to look at things jQuery hides from us
    function insertAtOffset(container, offset, insert ) {
 
       var kids = container.childNodes;
@@ -83,7 +86,11 @@ jQuery(document).ready(function(){
 
    // initialise selection capture
    var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
-   url = "http://lemur.ecs.soton.ac.uk/~cjg/link/";
+
+   // override the url for debugging purposes, not appropriate in final version. 
+   url = window.location.href.replace( /#.*$/, '' );
+
+   // this is the actual article in the page that the reference looks at, ignoring the outer template which may change over time
    var context = jQuery( ".post.full" );
 
 
@@ -103,10 +110,16 @@ jQuery(document).ready(function(){
       var toOff = charOffset( context.get(0), selection.focusNode);
       if( fromOff == -1 || toOff == -1 ) {
          // out of scope
-         return true; // propagate
+         //return true; // propagate event
       }
       var fromChar = fromOff + selection.anchorOffset;
       var toChar = toOff + selection.focusOffset;
+      if( fromChar == toChar ) {
+         // right now this is only fussed with ranges, not points in the text, so a zero-character selection should be ignored 
+         return true; // propagate event
+      }
+     
+      // clean up if user selected backwards 
       if( fromChar > toChar ) {
          var tmp = fromChar;
          fromChar = toChar;
@@ -117,7 +130,7 @@ jQuery(document).ready(function(){
       popup.html( link );
       popup.show();
          
-      return false; // don't propagate
+      return false; // don't propagate event
    });
 
    // assumes DOM nodes not jQuery
