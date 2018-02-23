@@ -662,4 +662,11 @@ var sbawAjax = {"ajaxurl":"https:\/\/blog.soton.ac.uk\/webteam\/wp-admin\/admin-
 			  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
 			  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
 			  crossorigin="anonymous"></script>
+<script type="text/javascript">
+jQuery( document ).ready( function() {
+   /* ignore the twitter button for character ranges. */
+   /* I could have removed it, but it's a real-world issue, so I'm trying to deal with it properly */
+   jQuery( ".twitter-share-button" ).addClass( "ultralink-ignore" );
+});
+</script>
 <script type='text/javascript' src='ultralink.js'></script>
