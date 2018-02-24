@@ -12,8 +12,8 @@ jQuery(document).ready(function(){
             var range = l2[1].split( /-/ );
             var startInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>[[</div>");
             var endInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>]]</div>");
-            var startLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='background-color:#000;color:#fff;padding:0px 1em; border-radius:1em'>linked range start</div><div style='text-align:center;color:#000;line-height:70%;font-size:200%'>▼</div></div>" );
-            var endLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='text-align:center;color:#000;line-height:50%;font-size:200%'>▲</div><div style='background-color:#000;color:#fff;padding:0px 1em;border-radius:1em;'>linked range end</div></div>" );
+            var startLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='background-color:#000;color:#fff;padding:0px 1em; border-radius:1em'>linked-range start</div><div style='text-align:center;color:#000;line-height:70%;font-size:200%'>▼</div></div>" );
+            var endLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='text-align:center;color:#000;line-height:50%;font-size:200%'>▲</div><div style='background-color:#000;color:#fff;padding:0px 1em;border-radius:1em;'>linked-range end</div></div>" );
             jQuery('body').append( startLabel );
             jQuery('body').append( endLabel );
             insertAtOffset( jQuery('#'+id).get(0), range[0], startInsert.get(0) );
@@ -24,18 +24,25 @@ jQuery(document).ready(function(){
             if( startPos > targetWindowOffset ) {
                jQuery(window).scrollTop( startPos-targetWindowOffset );
             }
+            startLabel.hide();
+            endLabel.hide();
 
-            startLabel.css( 'top', startPos - startLabel.height() - 5 + "px" );
-            var startLabelLeft  = startInsert.offset().left + startInsert.width()/2 - startLabel.width()/2;
-            if( startLabelLeft >= 0 ) {
-               startLabel.css( 'left', startLabelLeft + "px" );
-            }
 
-            endLabel.css( 'top', endInsert.offset().top + endInsert.height() + 5 + "px" );
-            var endLabelLeft  = endInsert.offset().left + endInsert.width()/2 - endLabel.width()/2;
-            if( endLabelLeft >= 0 ) {
-               endLabel.css( 'left', endLabelLeft + "px" );
-            }
+            setTimeout( function() {
+               startLabel.css( 'top', startPos - startLabel.height() - 5 + "px" );
+               var startLabelLeft  = startInsert.offset().left + startInsert.width()/2 - startLabel.width()/2;
+               if( startLabelLeft >= 0 ) {
+                  startLabel.css( 'left', startLabelLeft + "px" );
+               }
+   
+               endLabel.css( 'top', endInsert.offset().top + endInsert.height() + 5 + "px" );
+               var endLabelLeft  = endInsert.offset().left + endInsert.width()/2 - endLabel.width()/2;
+               if( endLabelLeft >= 0 ) {
+                  endLabel.css( 'left', endLabelLeft + "px" );
+               }
+               startLabel.show();
+               endLabel.show();
+            },1000);
          }
       }
    }
