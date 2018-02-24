@@ -1,11 +1,6 @@
 
 jQuery(document).ready(function(){
 
-/*
-   for( var i =0;i<100;++i ) {
-            insertAtOffset( jQuery('#post-content-1685').get(0), i, makeInsert('blue',i) );
-   }
-*/
    // detect fragment
    if( window.location.hash ) {
       var fragment = window.location.hash.replace(/^#/,'');
@@ -15,16 +10,38 @@ jQuery(document).ready(function(){
          var l2 = l1[1].split(/=/);
          if( l2[0] == 'chars' ) {
             var range = l2[1].split( /-/ );
-            insertAtOffset( jQuery('#'+id).get(0), range[0], makeInsert('green','start') );
-            insertAtOffset( jQuery('#'+id).get(0), range[1], makeInsert('red','end') );
+            var startInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>[[</div>");
+            var endInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>]]</div>");
+            var startLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='background-color:#000;color:#fff;padding:0px 1em; border-radius:1em'>linked range start</div><div style='text-align:center;color:#000;line-height:70%;font-size:200%'>▼</div></div>" );
+            var endLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='text-align:center;color:#000;line-height:50%;font-size:200%'>▲</div><div style='background-color:#000;color:#fff;padding:0px 1em;border-radius:1em;'>linked range end</div></div>" );
+            jQuery('body').append( startLabel );
+            jQuery('body').append( endLabel );
+            insertAtOffset( jQuery('#'+id).get(0), range[0], startInsert.get(0) );
+            insertAtOffset( jQuery('#'+id).get(0), range[1], endInsert.get(0) );
+            var startPos = startInsert.offset().top;
+            var windowHeight = jQuery(window).height();
+            var targetWindowOffset = windowHeight*0.3;
+            if( startPos > targetWindowOffset ) {
+               jQuery(window).scrollTop( startPos-targetWindowOffset );
+            }
+
+            startLabel.css( 'top', startPos - startLabel.height() - 5 + "px" );
+            var startLabelLeft  = startInsert.offset().left + startInsert.width()/2 - startLabel.width()/2;
+            if( startLabelLeft >= 0 ) {
+               startLabel.css( 'left', startLabelLeft + "px" );
+            }
+
+            endLabel.css( 'top', endInsert.offset().top + endInsert.height() + 5 + "px" );
+            var endLabelLeft  = endInsert.offset().left + endInsert.width()/2 - endLabel.width()/2;
+            if( endLabelLeft >= 0 ) {
+               endLabel.css( 'left', endLabelLeft + "px" );
+            }
          }
       }
    }
 
-   /* creates an insert to be placed in HTML but ignored by our "character counting" tools. */
-   function makeInsert( col, text ) {
-      return jQuery( "<div class='ultralink-insert ultralink-ignore' style='display:inline-block;font-weight:normal;font-size:small; color: "+col+";padding:0px 0.25em;border: solid 2px "+col+"; margin: 0 0em;background-color:#000'>"+text+"</div>").get(0);
-   }
+
+
 
    // container is a DOM node not jQuery, as we need to look at things jQuery hides from us
    function insertAtOffset(container, offset, insert ) {
@@ -48,7 +65,7 @@ jQuery(document).ready(function(){
         var kidLength = textLength(kid);
         if( kidLength > offset ) {
            // the offset is inside this 
-	   if( kid.nodeType==1 && kid.hasAttribute('data-length') ) {
+           if( kid.nodeType==1 && kid.hasAttribute('data-length') ) {
               var textNode = document.createTextNode( kid.innerText );
               container.insertBefore( textNode, kid);
               kid.remove();
@@ -84,6 +101,7 @@ jQuery(document).ready(function(){
 
 
 
+
    // initialise selection capture
    var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
 
@@ -94,7 +112,28 @@ jQuery(document).ready(function(){
    var context = jQuery( ".post.full" );
 
 
-   var popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em;  width:90%; border:solid 2px black; background-color: #ccc'></div>" ).hide();
+   var popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'></div>" );
+   popup.hide();
+   var tabs = jQuery("<div style='margin-left:1em;'></div>");
+   var blocks = jQuery("<div style='padding:1em;border:solid 2px black; background-color: #ccc; border-radius:1em;    box-shadow: 5px 5px 5px ;'></div>");
+   popup.append(tabs);
+   popup.append(blocks);
+   var tabNames = [ 'Link','Short HTML','Long HTML','Twitter','Facebook' ];
+   var blocksByName = [];
+   var tabsByName = [];
+   for( i=0;i<tabNames.length;++i ) {
+      var tab = jQuery( "<div data-tab='"+tabNames[i]+"' style='border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:0.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #ccc'>"+tabNames[i]+"</div>" );
+      var block = jQuery( "<div style=''></div>" );
+      tabs.append(tab);
+      blocks.append(block);
+      tabsByName[tabNames[i]] = tab;
+      blocksByName[tabNames[i]] = block;
+      tab.click( function(){ 
+         var tabName = jQuery(this).attr( 'data-tab' );
+         alert( tabName );
+      } );
+
+   }
    jQuery('body').append(popup);
    // don't hide the popup when we click inside it
    popup.mouseup( function() { return false; } );
@@ -110,12 +149,17 @@ jQuery(document).ready(function(){
       var toOff = charOffset( context.get(0), selection.focusNode);
       if( fromOff == -1 || toOff == -1 ) {
          // out of scope
-         //return true; // propagate event
+         return true; // propagate event
       }
       var fromChar = fromOff + selection.anchorOffset;
       var toChar = toOff + selection.focusOffset;
       if( fromChar == toChar ) {
          // right now this is only fussed with ranges, not points in the text, so a zero-character selection should be ignored 
+         return true; // propagate event
+      }
+
+      if( isNaN(fromChar) || isNaN(toChar) ) {
+         // out of scope
          return true; // propagate event
       }
      
@@ -127,7 +171,7 @@ jQuery(document).ready(function(){
       }
 
       var link = url+'#'+context.attr('id')+";chars="+fromChar+"-"+toChar;
-      popup.html( link );
+      blocksByName['Link'].html( "<p>To link directly to this range use:</p><p><tt>"+link+"</tt></p>" );
       popup.show();
          
       return false; // don't propagate event
@@ -163,7 +207,8 @@ jQuery(document).ready(function(){
       }
       // we know the thing is somewhere in here, so one of the children of container
       // should have been it's ancestor too.
-      alert( "Error, this code should not have been reached!" );
+      //alert( "Error, this code should not have been reached!" );
+      return NaN;
     }
 
     // takes 2 DOM nodes and returns true if major is an ancestor of minor
