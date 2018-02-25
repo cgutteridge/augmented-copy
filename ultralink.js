@@ -1,5 +1,21 @@
-
+/* ultralinks.js by Christopher Gutteridge 
+   https://github.com/cgutteridge/ultralink/
+   GPLv3   
+*/
 jQuery(document).ready(function(){
+
+   function trimText( text, maxLength ) {
+      if( text.length <= maxLength ) {
+         return text;
+      }
+      return text.substr( 0, maxLength-1 )+"…";
+   }
+
+   function toHTML( jqThing ) {
+      var div = jQuery( "<div></div>" );
+      div.append( jqThing.clone() );
+      return div.html();
+   }
 
    // detect fragment
    if( window.location.hash ) {
@@ -118,18 +134,20 @@ jQuery(document).ready(function(){
    // this is the actual article in the page that the reference looks at, ignoring the outer template which may change over time
    var context = jQuery( ".post.full" );
 
-
    var popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'></div>" );
    popup.hide();
    var tabs = jQuery("<div style='margin-left:1em;'></div>");
-   var blocks = jQuery("<div style='padding:1em;border:solid 2px black; background-color: #ccc; border-radius:1em;    box-shadow: 5px 5px 5px ;'></div>");
+   var closeTab = jQuery( "<div title='Close' style='float:right; font-size:80%; border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:1.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #eee'>X</div>" );
+   var blocks = jQuery("<div style='height:10em;padding:1em;border:solid 2px black; background-color: #eee; border-radius:1em;    box-shadow: 5px 5px 5px ;'></div>");
+   tabs.append(closeTab);
+   closeTab.click(function(){popup.hide();});
    popup.append(tabs);
    popup.append(blocks);
-   var tabNames = [ 'Link','Short HTML','Long HTML','Twitter','Facebook' ];
+   var tabNames = [ 'Link','Short HTML','Long HTML','Twitter','Facebook','About' ];
    var blocksByName = [];
    var tabsByName = [];
    for( i=0;i<tabNames.length;++i ) {
-      var tab = jQuery( "<div data-tab='"+tabNames[i]+"' style='border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:0.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #ccc'>"+tabNames[i]+"</div>" );
+      var tab = jQuery( "<div data-tab='"+tabNames[i]+"' style='border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:0.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #eee'>"+tabNames[i]+"</div>" );
       var block = jQuery( "<div style=''></div>" );
       tabs.append(tab);
       blocks.append(block);
@@ -137,9 +155,13 @@ jQuery(document).ready(function(){
       blocksByName[tabNames[i]] = block;
       tab.click( function(){ 
          var tabName = jQuery(this).attr( 'data-tab' );
-         alert( tabName );
+         tabs.children().css('background-color','#666').css('color','white').css( 'border-bottom','solid 1px #000');
+         tabsByName[tabName].css('background-color','#eee').css('color','black').css('border-bottom','solid 2px #eee');
+         blocks.children().hide();
+         blocksByName[tabName].show();
+         closeTab.show();
       } );
-
+      tabsByName['Link'].click();
    }
    jQuery('body').append(popup);
    // don't hide the popup when we click inside it
@@ -150,10 +172,16 @@ jQuery(document).ready(function(){
       return true; // propagate
    });
    context.mouseup( function() {
+      jQuery('.ultralink-ignore').hide();
       var selection = window.getSelection();
                                 
       var fromOff = charOffset( context.get(0), selection.anchorNode) 
       var toOff = charOffset( context.get(0), selection.focusNode);
+      var text = selection.toString();
+      var title = jQuery(document).prop('title');
+
+      jQuery('.ultralink-ignore').show();
+
       if( fromOff == -1 || toOff == -1 ) {
          // out of scope
          return true; // propagate event
@@ -178,11 +206,34 @@ jQuery(document).ready(function(){
       }
 
       var link = url+'#'+context.attr('id')+";chars="+fromChar+"-"+toChar;
-      blocksByName['Link'].html( "<p>To link directly to this range use:</p><p><tt>"+link+"</tt></p>" );
+      blocksByName['Link'].html( "<p>To link directly to this range use:</p><p><tt><a href='"+link+"'>"+link+"</a></tt></p>" );
+
+      var sourceLink = jQuery( "<a>Source</a>" );
+      sourceLink.attr("href",link).attr("title",title);
+      var cite = jQuery("<cite></cite>").append(sourceLink);
+      blocksByName['Short HTML'].html( '' ).append( jQuery( '<textarea style="height:10em;width:100%;font-family:monospace">' ).val( "<q>"+trimText( text, 50 )+"</q> - "+toHTML(cite) ) );
+
+      var sourceLink2 = jQuery( "<a></a>" );
+      sourceLink2.attr("href",link).text(title+", Character range "+fromChar+"-"+toChar );
+      var cite2 = jQuery("<cite></cite>").append(sourceLink2);
+      blocksByName['Long HTML'].html( '' ).append( jQuery( '<textarea style="height:10em;width:100%;font-family:monospace">' ).val( "<blockquote>\""+text+"\"</blockquote>\n<div>- "+toHTML(cite2)+"</div>" ) );
+
+      blocksByName['About'].html('<p>Ultralink.js was written by <a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Guuteridge</a> for the <a href="http://doug-50.info/">Doug@50</a> project.</p><p>It\'s available under the GPL license, at <a href="https://github.com/cgutteridge/ultralink/">GitHub</a>.</p>' );
+
+      var tweet = "\""+trimText( text, 240 )+"\" - "+link;
+      var twitLink = "https://twitter.com/intent/tweet?text="+encodeURIComponent(tweet)+"&source=webclient";
+      blocksByName['Twitter'].html("<p><a href='"+twitLink+"'>Tweet this</a> (you will have a chance to edit before tweeting)</p>" );
+
+      var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link);
+      blocksByName['Facebook'].html("<p><a href='"+faceLink+"'>Share this on the Facebooks</a> (you will have a chance to edit before posting)</p>" );
+
       popup.show();
+   //var tabNames = [ 'Link','Short HTML','Long HTML','Twitter','Facebook' ];
+
          
       return false; // don't propagate event
    });
+
 
    // assumes DOM nodes not jQuery
    // work out how many characters from the start of the contianer to the start of the thing
