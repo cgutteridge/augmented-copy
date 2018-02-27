@@ -43,7 +43,7 @@ jQuery(document).ready(function(){
             startLabel.hide();
             endLabel.hide();
 
-
+            /* other changes to the page layout mess these out so let's wait a second before adding these */
             setTimeout( function() {
                startLabel.css( 'top', startPos - startLabel.height() - 5 + "px" );
                var startLabelLeft  = startInsert.offset().left + startInsert.width()/2 - startLabel.width()/2;
@@ -132,7 +132,7 @@ jQuery(document).ready(function(){
    url = window.location.href.replace( /#.*$/, '' );
 
    // this is the actual article in the page that the reference looks at, ignoring the outer template which may change over time
-   var context = jQuery( ".post.full" );
+   var context = jQuery( ".post" );
 
    var popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'></div>" );
    popup.hide();
