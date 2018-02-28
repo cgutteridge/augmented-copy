@@ -4,6 +4,111 @@
 */
 jQuery(document).ready(function(){
 
+   var popup;
+
+   // initialise selection capture
+   var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
+
+   // override the url for debugging purposes, not appropriate in final version. 
+   url = window.location.href.replace( /#.*$/, '' );
+
+   var contexts = {};
+
+   // this is the actual article in the page that the reference looks at, ignoring the outer template which may change over time
+   // getting <article>s is probably better than using .post
+   var articles = jQuery( "article" );
+   if( articles.length ) {
+      articles.each( function(i,e) { 
+         var locSpec = ';article='+(i+1);
+         contexts[locSpec] = jQuery(e);
+         activateContextArea( jQuery(e), locSpec );
+      });
+   } else {
+      var post = jQuery( ".post" );
+      if( post.length ) {
+         // use the .post, with an ID for preference.
+         var locSpec = "";
+         if( post[0].hasAttribute('id') != '' ) {
+            locSpec += post.attr('id');
+         }
+         contexts[locSpec] = post;
+         activateContextArea( post, locSpec );
+      }
+   }
+
+   // detect fragment and highlight range if possible
+   if( window.location.hash ) {
+      var fragment = window.location.hash.replace(/^#/,'');
+      highlightLocspec( fragment );
+   }
+
+
+   function highlightLocspec( fragment ) {
+
+      // for now we need it to end with a char range
+      if( !fragment.match( /;char=\d+-\d+$/ ) ) {
+         return;
+      }
+
+      var locSpecBits = fragment.split( ";" );
+      var charRange = locSpecBits.pop();
+      var locSpecContext = locSpecBits.join( ";" );
+
+      // get the jquery object the locSpecContext indicates. In time this code will
+      // hopefully become far more cleverer
+      if( !contexts.hasOwnProperty( locSpecContext ) ) {
+         console.log( "unknown context "+locSpecContext );
+         console.log( "Valid contexts: "+contexts );
+         return;
+      }
+
+      var highlightContext = contexts[locSpecContext]; 
+         console.log( "Valid contexts: "+contexts );
+
+      var l2 = charRange.split(/=/);
+      if( l2[0] != 'char' ) {
+         return; 
+      }
+
+      var range = l2[1].split( /-/ );
+      var startInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>[[</div>");
+      var endInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>]]</div>");
+      var startLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='background-color:#000;color:#fff;padding:0px 1em; border-radius:1em'>linked-range start</div><div style='text-align:center;color:#000;line-height:70%;font-size:200%'>▼</div></div>" );
+      var endLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='text-align:center;color:#000;line-height:50%;font-size:200%'>▲</div><div style='background-color:#000;color:#fff;padding:0px 1em;border-radius:1em;'>linked-range end</div></div>" );
+      jQuery('body').append( startLabel );
+      jQuery('body').append( endLabel );
+      insertAtOffset( highlightContext.get(0), range[0], startInsert.get(0) );
+      insertAtOffset( highlightContext.get(0), range[1], endInsert.get(0) );
+
+      var startPos = startInsert.offset().top;
+      var windowHeight = jQuery(window).height();
+      var targetWindowOffset = windowHeight*0.3;
+      if( startPos > targetWindowOffset ) {
+         jQuery(window).scrollTop( startPos-targetWindowOffset );
+      }
+      startLabel.hide();
+      endLabel.hide();
+
+      /* other changes to the page layout mess these out so let's wait a second before adding these */
+      setTimeout( function() {
+         startLabel.css( 'top', startPos - startLabel.height() - 5 + "px" );
+         var startLabelLeft  = startInsert.offset().left + startInsert.width()/2 - startLabel.width()/2;
+         if( startLabelLeft >= 0 ) {
+            startLabel.css( 'left', startLabelLeft + "px" );
+         }
+
+         endLabel.css( 'top', endInsert.offset().top + endInsert.height() + 5 + "px" );
+         var endLabelLeft  = endInsert.offset().left + endInsert.width()/2 - endLabel.width()/2;
+         if( endLabelLeft >= 0 ) {
+            endLabel.css( 'left', endLabelLeft + "px" );
+         }
+         startLabel.show();
+         endLabel.show();
+      },1000);
+   }
+
+
+
    function trimText( text, maxLength ) {
       if( text.length <= maxLength ) {
          return text;
@@ -16,53 +121,6 @@ jQuery(document).ready(function(){
       div.append( jqThing.clone() );
       return div.html();
    }
-
-   // detect fragment
-   if( window.location.hash ) {
-      var fragment = window.location.hash.replace(/^#/,'');
-      if( fragment.match( /;/ ) ) {
-         var l1 = fragment.split( /;/ );
-         var id = l1[0];
-         var l2 = l1[1].split(/=/);
-         if( l2[0] == 'chars' ) {
-            var range = l2[1].split( /-/ );
-            var startInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>[[</div>");
-            var endInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>]]</div>");
-            var startLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='background-color:#000;color:#fff;padding:0px 1em; border-radius:1em'>linked-range start</div><div style='text-align:center;color:#000;line-height:70%;font-size:200%'>▼</div></div>" );
-            var endLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='text-align:center;color:#000;line-height:50%;font-size:200%'>▲</div><div style='background-color:#000;color:#fff;padding:0px 1em;border-radius:1em;'>linked-range end</div></div>" );
-            jQuery('body').append( startLabel );
-            jQuery('body').append( endLabel );
-            insertAtOffset( jQuery('#'+id).get(0), range[0], startInsert.get(0) );
-            insertAtOffset( jQuery('#'+id).get(0), range[1], endInsert.get(0) );
-            var startPos = startInsert.offset().top;
-            var windowHeight = jQuery(window).height();
-            var targetWindowOffset = windowHeight*0.3;
-            if( startPos > targetWindowOffset ) {
-               jQuery(window).scrollTop( startPos-targetWindowOffset );
-            }
-            startLabel.hide();
-            endLabel.hide();
-
-            /* other changes to the page layout mess these out so let's wait a second before adding these */
-            setTimeout( function() {
-               startLabel.css( 'top', startPos - startLabel.height() - 5 + "px" );
-               var startLabelLeft  = startInsert.offset().left + startInsert.width()/2 - startLabel.width()/2;
-               if( startLabelLeft >= 0 ) {
-                  startLabel.css( 'left', startLabelLeft + "px" );
-               }
-   
-               endLabel.css( 'top', endInsert.offset().top + endInsert.height() + 5 + "px" );
-               var endLabelLeft  = endInsert.offset().left + endInsert.width()/2 - endLabel.width()/2;
-               if( endLabelLeft >= 0 ) {
-                  endLabel.css( 'left', endLabelLeft + "px" );
-               }
-               startLabel.show();
-               endLabel.show();
-            },1000);
-         }
-      }
-   }
-
 
 
 
@@ -124,20 +182,10 @@ jQuery(document).ready(function(){
 
 
 
-
-   // initialise selection capture
-   var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
-
-   // override the url for debugging purposes, not appropriate in final version. 
-   url = window.location.href.replace( /#.*$/, '' );
-
-   // this is the actual article in the page that the reference looks at, ignoring the outer template which may change over time
-   var context = jQuery( ".post" );
-
-   var popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'></div>" );
+   popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'></div>" );
    popup.hide();
    var tabs = jQuery("<div style='margin-left:1em;'></div>");
-   var closeTab = jQuery( "<div title='Close' style='float:right; font-size:80%; border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:1.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #eee'>X</div>" );
+   var closeTab = jQuery( "<div title='Close' style='float:right; border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:1.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #eee'>X</div>" );
    var blocks = jQuery("<div style='height:10em;padding:1em;border:solid 2px black; background-color: #eee; border-radius:1em;    box-shadow: 5px 5px 5px ;'></div>");
    tabs.append(closeTab);
    closeTab.click(function(){popup.hide();});
@@ -171,69 +219,72 @@ jQuery(document).ready(function(){
       popup.hide();
       return true; // propagate
    });
-   context.mouseup( function() {
-      jQuery('.ultralink-ignore').hide();
-      var selection = window.getSelection();
-                                
-      var fromOff = charOffset( context.get(0), selection.anchorNode) 
-      var toOff = charOffset( context.get(0), selection.focusNode);
-      var text = selection.toString();
-      var title = jQuery(document).prop('title');
 
-      jQuery('.ultralink-ignore').show();
-
-      if( fromOff == -1 || toOff == -1 ) {
-         // out of scope
-         return true; // propagate event
-      }
-      var fromChar = fromOff + selection.anchorOffset;
-      var toChar = toOff + selection.focusOffset;
-      if( fromChar == toChar ) {
-         // right now this is only fussed with ranges, not points in the text, so a zero-character selection should be ignored 
-         return true; // propagate event
-      }
-
-      if( isNaN(fromChar) || isNaN(toChar) ) {
-         // out of scope
-         return true; // propagate event
-      }
-     
-      // clean up if user selected backwards 
-      if( fromChar > toChar ) {
-         var tmp = fromChar;
-         fromChar = toChar;
-         toChar = tmp;
-      }
-
-      var link = url+'#'+context.attr('id')+";chars="+fromChar+"-"+toChar;
-      blocksByName['Link'].html( "<p>To link directly to this range use:</p><p><tt><a href='"+link+"'>"+link+"</a></tt></p>" );
-
-      var sourceLink = jQuery( "<a>Source</a>" );
-      sourceLink.attr("href",link).attr("title",title);
-      var cite = jQuery("<cite></cite>").append(sourceLink);
-      blocksByName['Short HTML'].html( '' ).append( jQuery( '<textarea style="height:10em;width:100%;font-family:monospace">' ).val( "<q>"+trimText( text, 50 )+"</q> - "+toHTML(cite) ) );
-
-      var sourceLink2 = jQuery( "<a></a>" );
-      sourceLink2.attr("href",link).text(title+", Character range "+fromChar+"-"+toChar );
-      var cite2 = jQuery("<cite></cite>").append(sourceLink2);
-      blocksByName['Long HTML'].html( '' ).append( jQuery( '<textarea style="height:10em;width:100%;font-family:monospace">' ).val( "<blockquote>\""+text+"\"</blockquote>\n<div>- "+toHTML(cite2)+"</div>" ) );
-
-      blocksByName['About'].html('<p>Ultralink.js was written by <a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Guuteridge</a> for the <a href="http://doug-50.info/">Doug@50</a> project.</p><p>It\'s available under the GPL license, at <a href="https://github.com/cgutteridge/ultralink/">GitHub</a>.</p>' );
-
-      var tweet = "\""+trimText( text, 240 )+"\" - "+link;
-      var twitLink = "https://twitter.com/intent/tweet?text="+encodeURIComponent(tweet)+"&source=webclient";
-      blocksByName['Twitter'].html("<p><a href='"+twitLink+"'>Tweet this</a> (you will have a chance to edit before tweeting)</p>" );
-
-      var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link);
-      blocksByName['Facebook'].html("<p><a href='"+faceLink+"'>Share this on the Facebooks</a> (you will have a chance to edit before posting)</p>" );
-
-      popup.show();
-   //var tabNames = [ 'Link','Short HTML','Long HTML','Twitter','Facebook' ];
-
+   function activateContextArea( context, locSpec ) {
+      var contextUrl = url+"#"+locSpec;
+      context.mouseup( function() {
+         jQuery('.ultralink-ignore').hide();
+         var selection = window.getSelection();
+                                   
+         var fromOff = charOffset( context.get(0), selection.anchorNode) 
+         var toOff = charOffset( context.get(0), selection.focusNode);
+         var text = selection.toString();
+         var title = jQuery(document).prop('title');
+   
+         jQuery('.ultralink-ignore').show();
+   
+         if( fromOff == -1 || toOff == -1 ) {
+            // out of scope
+            return true; // propagate event
+         }
+         var fromChar = fromOff + selection.anchorOffset;
+         var toChar = toOff + selection.focusOffset;
+         if( fromChar == toChar ) {
+            // right now this is only fussed with ranges, not points in the text, so a zero-character selection should be ignored 
+            return true; // propagate event
+         }
+   
+         if( isNaN(fromChar) || isNaN(toChar) ) {
+            // out of scope
+            return true; // propagate event
+         }
+        
+         // clean up if user selected backwards 
+         if( fromChar > toChar ) {
+            var tmp = fromChar;
+            fromChar = toChar;
+            toChar = tmp;
+         }
+   
+         var link = contextUrl + ";char="+fromChar+"-"+toChar;
+         blocksByName['Link'].html( "<p>To link directly to this range use:</p><p><tt><a href='"+link+"'>"+link+"</a></tt></p>" );
+   
+         var sourceLink = jQuery( "<a>Source</a>" );
+         sourceLink.attr("href",link).attr("title",title);
+         var cite = jQuery("<cite></cite>").append(sourceLink);
+         blocksByName['Short HTML'].html( '' ).append( jQuery( '<textarea style="height:10em;width:100%;font-family:monospace">' ).val( "<q>"+trimText( text, 50 )+"</q> - "+toHTML(cite) ) );
+   
+         var sourceLink2 = jQuery( "<a></a>" );
+         sourceLink2.attr("href",link).text(title+", Character range "+fromChar+"-"+toChar );
+         var cite2 = jQuery("<cite></cite>").append(sourceLink2);
+         blocksByName['Long HTML'].html( '' ).append( jQuery( '<textarea style="height:10em;width:100%;font-family:monospace">' ).val( "<blockquote>\""+text+"\"</blockquote>\n<div>- "+toHTML(cite2)+"</div>" ) );
+   
+         blocksByName['About'].html('<p>Ultralink.js was written by <a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Guuteridge</a> for the <a href="http://doug-50.info/">Doug@50</a> project.</p><p>It\'s available under the GPL license, at <a href="https://github.com/cgutteridge/ultralink/">GitHub</a>.</p>' );
+   
+         var tweet = "\""+trimText( text, 240 )+"\" - "+link;
+         var twitLink = "https://twitter.com/intent/tweet?text="+encodeURIComponent(tweet)+"&source=webclient";
+         blocksByName['Twitter'].html("<p><a href='"+twitLink+"'>Tweet this</a> (you will have a chance to edit before tweeting)</p>" );
+   
+         var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link);
+         blocksByName['Facebook'].html("<p><a href='"+faceLink+"'>Share this on the Facebooks</a> (you will have a chance to edit before posting)</p>" );
+   
+         popup.show();
+      //var tabNames = [ 'Link','Short HTML','Long HTML','Twitter','Facebook' ];
+   
          
-      return false; // don't propagate event
-   });
-
+         return false; // don't propagate event
+      });
+   }
 
    // assumes DOM nodes not jQuery
    // work out how many characters from the start of the contianer to the start of the thing
