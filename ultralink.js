@@ -262,12 +262,12 @@ jQuery(document).ready(function(){
          var sourceLink = jQuery( "<a>Source</a>" );
          sourceLink.attr("href",link).attr("title",title);
          var cite = jQuery("<cite></cite>").append(sourceLink);
-         blocksByName['Short HTML'].html( '' ).append( jQuery( '<textarea style="height:10em;width:100%;font-family:monospace">' ).val( "<q>"+trimText( text, 50 )+"</q> - "+toHTML(cite) ) );
+         blocksByName['Short HTML'].html( '' ).append( jQuery( '<textarea style="max-width:100%;height:10em;width:100%;font-family:monospace">' ).val( "<q>"+trimText( text, 50 )+"</q> - "+toHTML(cite) ) );
    
          var sourceLink2 = jQuery( "<a></a>" );
          sourceLink2.attr("href",link).text(title+", Character range "+fromChar+"-"+toChar );
          var cite2 = jQuery("<cite></cite>").append(sourceLink2);
-         blocksByName['Long HTML'].html( '' ).append( jQuery( '<textarea style="height:10em;width:100%;font-family:monospace">' ).val( "<blockquote>\""+text+"\"</blockquote>\n<div>- "+toHTML(cite2)+"</div>" ) );
+         blocksByName['Long HTML'].html( '' ).append( jQuery( '<textarea style="max-width:100%;height:10em;width:100%;font-family:monospace">' ).val( "<blockquote>\""+text+"\"</blockquote>\n<div>- "+toHTML(cite2)+"</div>" ) );
    
          blocksByName['About'].html('<p>Ultralink.js was written by <a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Guuteridge</a> for the <a href="http://doug-50.info/">Doug@50</a> project.</p><p>It\'s available under the GPL license, at <a href="https://github.com/cgutteridge/ultralink/">GitHub</a>.</p>' );
    
