@@ -10,7 +10,10 @@ jQuery(document).ready(function(){
    var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
 
    // override the url for debugging purposes, not appropriate in final version. 
-   url = window.location.href.replace( /#.*$/, '' );
+   // maybe this should be per-context info instead
+   var pageInfo = {};
+   pageInfo.title = jQuery(document).prop('title');
+   pageInfo.url = window.location.href.replace( /#.*$/, '' );
 
    var contexts = {};
 
@@ -107,8 +110,6 @@ jQuery(document).ready(function(){
       },1000);
    }
 
-
-
    function trimText( text, maxLength ) {
       if( text.length <= maxLength ) {
          return text;
@@ -121,8 +122,6 @@ jQuery(document).ready(function(){
       div.append( jqThing.clone() );
       return div.html();
    }
-
-
 
    // container is a DOM node not jQuery, as we need to look at things jQuery hides from us
    function insertAtOffset(container, offset, insert ) {
@@ -220,58 +219,72 @@ jQuery(document).ready(function(){
       return true; // propagate
    });
 
+   // returns an object with the from and to char offset, or false
+   function getSelectionRangeInContext(context) {
+
+      jQuery('.ultralink-ignore').hide();
+      var selection = window.getSelection();
+      var contextRange = {};                             
+      var fromOff = charOffset( context.get(0), selection.anchorNode) 
+      var toOff = charOffset( context.get(0), selection.focusNode);
+      contextRange.text = selection.toString();
+      jQuery('.ultralink-ignore').show();
+
+      if( fromOff == -1 || toOff == -1 ) {
+         // out of scope
+         return false; // propagate event
+      }
+      contextRange.from = fromOff + selection.anchorOffset;
+      contextRange.to = toOff + selection.focusOffset;
+      if( contextRange.from == contextRange.to ) {
+         // right now this is only fussed with contextRange, not points in the text, so a zero-character selection should be ignored 
+         return false; // propagate event
+      }
+
+      if( isNaN(contextRange.from) || isNaN(contextRange.to) ) {
+         // out of scope
+         return false; // propagate event
+      }
+     
+      // clean up if user selected backwards 
+      if( contextRange.from > contextRange.to ) {
+         var tmp = contextRange.from;
+         contextRange.from = contextRange.to;
+         contextRange.to = tmp;
+      }
+     
+      return contextRange; 
+   }
+
    function activateContextArea( context, locSpec ) {
-      var contextUrl = url+"#"+locSpec;
+      
+      var contextUrl = pageInfo.url+"#"+locSpec;
+
       context.mouseup( function() {
-         jQuery('.ultralink-ignore').hide();
-         var selection = window.getSelection();
-                                   
-         var fromOff = charOffset( context.get(0), selection.anchorNode) 
-         var toOff = charOffset( context.get(0), selection.focusNode);
-         var text = selection.toString();
-         var title = jQuery(document).prop('title');
-   
-         jQuery('.ultralink-ignore').show();
-   
-         if( fromOff == -1 || toOff == -1 ) {
-            // out of scope
+
+         contextRange = getSelectionRangeInContext(context);
+         if( !contextRange ) { 
             return true; // propagate event
          }
-         var fromChar = fromOff + selection.anchorOffset;
-         var toChar = toOff + selection.focusOffset;
-         if( fromChar == toChar ) {
-            // right now this is only fussed with ranges, not points in the text, so a zero-character selection should be ignored 
-            return true; // propagate event
-         }
-   
-         if( isNaN(fromChar) || isNaN(toChar) ) {
-            // out of scope
-            return true; // propagate event
-         }
-        
-         // clean up if user selected backwards 
-         if( fromChar > toChar ) {
-            var tmp = fromChar;
-            fromChar = toChar;
-            toChar = tmp;
-         }
-   
-         var link = contextUrl + ";char="+fromChar+"-"+toChar;
+
+         // Create popup text 
+         var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
+
          blocksByName['Link'].html( "<p>To link directly to this range use:</p><p><tt><a href='"+link+"'>"+link+"</a></tt></p>" );
    
          var sourceLink = jQuery( "<a>Source</a>" );
-         sourceLink.attr("href",link).attr("title",title);
+         sourceLink.attr("href",link).attr("title",pageInfo.title);
          var cite = jQuery("<cite></cite>").append(sourceLink);
-         blocksByName['Short HTML'].html( '' ).append( jQuery( '<textarea style="max-width:100%;height:10em;width:100%;font-family:monospace">' ).val( "<q>"+trimText( text, 50 )+"</q> - "+toHTML(cite) ) );
+         blocksByName['Short HTML'].html( '' ).append( jQuery( '<textarea style="max-width:100%;height:10em;width:100%;font-family:monospace">' ).val( "<q>"+trimText( contextRange.text, 50 )+"</q> - "+toHTML(cite) ) );
    
          var sourceLink2 = jQuery( "<a></a>" );
-         sourceLink2.attr("href",link).text(title+", Character range "+fromChar+"-"+toChar );
+         sourceLink2.attr("href",link).text(pageInfo.title+", Character range "+contextRange.from+"-"+contextRange.to );
          var cite2 = jQuery("<cite></cite>").append(sourceLink2);
-         blocksByName['Long HTML'].html( '' ).append( jQuery( '<textarea style="max-width:100%;height:10em;width:100%;font-family:monospace">' ).val( "<blockquote>\""+text+"\"</blockquote>\n<div>- "+toHTML(cite2)+"</div>" ) );
+         blocksByName['Long HTML'].html( '' ).append( jQuery( '<textarea style="max-width:100%;height:10em;width:100%;font-family:monospace">' ).val( "<blockquote>\""+contextRange.text+"\"</blockquote>\n<div>- "+toHTML(cite2)+"</div>" ) );
    
          blocksByName['About'].html('<p>Ultralink.js was written by <a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Guuteridge</a> for the <a href="http://doug-50.info/">Doug@50</a> project.</p><p>It\'s available under the GPL license, at <a href="https://github.com/cgutteridge/ultralink/">GitHub</a>.</p>' );
    
-         var tweet = "\""+trimText( text, 240 )+"\" - "+link;
+         var tweet = "\""+trimText( contextRange.text, 240 )+"\" - "+link;
          var twitLink = "https://twitter.com/intent/tweet?text="+encodeURIComponent(tweet)+"&source=webclient";
          blocksByName['Twitter'].html("<p><a href='"+twitLink+"'>Tweet this</a> (you will have a chance to edit before tweeting)</p>" );
    
@@ -284,6 +297,97 @@ jQuery(document).ready(function(){
          
          return false; // don't propagate event
       });
+
+
+      /* initialise enhancd copy */
+      context.on('copy', function(event) {
+         var sel = window.getSelection();
+         var realrange = sel.getRangeAt(0);
+
+         contextRange = getSelectionRangeInContext(context);
+         if( !contextRange ) { 
+            return true; // propagate event
+         }
+   
+         var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
+         var author = findAuthor( context );
+
+         // create the thing we really want to copy
+         var citation = jQuery('<blockquote></blockquote>');
+         citation.attr('cite', link );
+         citation.attr('data-title', pageInfo.title );
+         if( author && author.name ) {
+            citation.attr('data-author-name', author.name );
+         }
+         if( author && author.url ) {
+            citation.attr('data-author-url', author.url );
+         }
+         citation.append(realrange.cloneContents());
+         var wrapper = jQuery('<div></div>');
+         wrapper.append(citation);
+   
+         var json = {
+            jrnlCitation: true,
+            comment: "This is a demo format. Probably it will be replaced with JSON-LD of dcterms+bibo",
+            version: 0.1,
+            citation: {
+               title: pageInfo.title,
+               url: link,
+               timestamp: Math.floor(Date.now() / 1000),
+               text: citation.text(),
+               html: citation.html()
+            }
+         };
+         if( author && author.name ) {
+            json.citation.author=author.name;
+         }
+         if( author && author.url ) {
+            json.citation.authorURL=author.url;
+         }
+   
+         var clipboardData = event.clipboardData || window.clipboardData || event.originalEvent.clipboardData;
+         clipboardData.setData('application/json', JSON.stringify( json, null,"\t" ));
+         clipboardData.setData('text/html', wrapper.html() );
+         clipboardData.setData('text/plain', wrapper.text() );
+
+         // remove temporary DOM object
+         citation.remove();
+
+         return false; // stop the normal copy op
+      });
+
+   }
+
+   // try to find the name and or URL of an author for the given context.
+   function findAuthor( context ) {
+      var vcard = context.find( '.author.vcard' );
+      if( !vcard ) {
+         return false;
+      }
+
+      var fn = vcard.find( '.fn');
+      var n = vcard.find( '.n');
+      var url = vcard.find('.url');
+      var author = {};
+      var matched = false;
+ 
+      if( url ) { 
+         author.url = url.attr('href');
+         matched = true;
+      } 
+      if( fn ) { 
+         author.name = fn.text();
+         matched = true;
+      } 
+      else if( n ) { 
+         author.name = n.text();
+         matched = true;
+      } 
+
+      if( !matched ) {
+         return false;
+      } 
+      return author;
    }
 
    // assumes DOM nodes not jQuery
@@ -352,6 +456,9 @@ jQuery(document).ready(function(){
       }
       return chars;
     } 
+
+
+
 });
 
 
