@@ -181,8 +181,10 @@ jQuery(document).ready(function(){
 
 
 
-   popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'></div>" );
+   popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'><div style='padding:5px 5%;background-color:#333;color:#ccc;font-family:monospace;border:solid 1px #000'>Enhanced copy enabled!<div style='float:right'>[WHAT IS THIS?] | [DISABLE]</div></div></div>" );
+   dot = jQuery("<div style='position: absolute;font-size:200%;color:#36f'>●</div>");
    popup.hide();
+/*
    var tabs = jQuery("<div style='margin-left:1em;'></div>");
    var closeTab = jQuery( "<div title='Close' style='float:right; border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:1.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #eee'>X</div>" );
    var blocks = jQuery("<div style='height:10em;padding:1em;border:solid 2px black; background-color: #eee; border-radius:1em;    box-shadow: 5px 5px 5px ;'></div>");
@@ -210,12 +212,15 @@ jQuery(document).ready(function(){
       } );
       tabsByName['Link'].click();
    }
+*/
    jQuery('body').append(popup);
+   jQuery('body').append(dot);
    // don't hide the popup when we click inside it
    popup.mouseup( function() { return false; } );
 
    jQuery('body').mouseup( function() {
       popup.hide();
+      dot.hide();
       return true; // propagate
    });
 
@@ -260,7 +265,7 @@ jQuery(document).ready(function(){
       
       var contextUrl = pageInfo.url+"#"+locSpec;
 
-      context.mouseup( function() {
+      context.mouseup( function(e) {
 
          contextRange = getSelectionRangeInContext(context);
          if( !contextRange ) { 
@@ -269,7 +274,7 @@ jQuery(document).ready(function(){
 
          // Create popup text 
          var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
-
+/*
          blocksByName['Link'].html( "<p>To link directly to this range use:</p><p><tt><a href='"+link+"'>"+link+"</a></tt></p>" );
    
          var sourceLink = jQuery( "<a>Source</a>" );
@@ -290,8 +295,11 @@ jQuery(document).ready(function(){
    
          var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link);
          blocksByName['Facebook'].html("<p><a href='"+faceLink+"'>Share this on the Facebooks</a> (you will have a chance to edit before posting)</p>" );
-   
+  */ 
          popup.show();
+         dot.css({'left':(20+e.pageX)+"px",'top':e.pageY+"px"});
+         dot.show();
+	
       //var tabNames = [ 'Link','Short HTML','Long HTML','Twitter','Facebook' ];
    
          
