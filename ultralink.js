@@ -1,6 +1,6 @@
 /* ultralinks.js by Christopher Gutteridge 
    https://github.com/cgutteridge/ultralink/
-   GPLv3   
+   GPLv3
 */
 jQuery(document).ready(function(){
 
