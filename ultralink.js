@@ -182,8 +182,25 @@ jQuery(document).ready(function(){
 
 
    popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'><div style='padding:5px 5%;background-color:#333;color:#ccc;font-family:monospace;border:solid 1px #000'>Enhanced copy enabled!<div style='float:right'>[WHAT IS THIS?] | [DISABLE]</div></div></div>" );
-   dot = jQuery("<div style='position: absolute;font-size:200%;color:#36f'>●</div>");
+   jQuery('body').append(popup);
    popup.hide();
+
+   var dotdiv = jQuery("<div style='position: absolute;z-index:1000'>");
+   var dot = jQuery("<span style='cursor:pointer;font-size:400%;color:#36f;'>●</span></div>");
+   var menu = jQuery("<div style='background-color: black; width:200px; height:200px; padding: 10px; color: white;'>A menu with more options of things to do with the selection.</div>");
+   dotdiv.append(dot);
+   dotdiv.append(menu);
+   dotdiv.mouseover(function() { menu.show(); dot.hide();} );
+   dotdiv.mouseout(function() { menu.hide(); dot.show();} );
+   jQuery('body').append(dotdiv);
+   // don't hide the popup when we click inside it
+   popup.mouseup( function() { return false; } );
+
+   jQuery('body').mouseup( function() {
+      popup.hide();
+      dotdiv.hide();
+      return true; // propagate
+   });
 /*
    var tabs = jQuery("<div style='margin-left:1em;'></div>");
    var closeTab = jQuery( "<div title='Close' style='float:right; border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:1.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #eee'>X</div>" );
@@ -213,16 +230,6 @@ jQuery(document).ready(function(){
       tabsByName['Link'].click();
    }
 */
-   jQuery('body').append(popup);
-   jQuery('body').append(dot);
-   // don't hide the popup when we click inside it
-   popup.mouseup( function() { return false; } );
-
-   jQuery('body').mouseup( function() {
-      popup.hide();
-      dot.hide();
-      return true; // propagate
-   });
 
    // returns an object with the from and to char offset, or false
    function getSelectionRangeInContext(context) {
@@ -297,8 +304,10 @@ jQuery(document).ready(function(){
          blocksByName['Facebook'].html("<p><a href='"+faceLink+"'>Share this on the Facebooks</a> (you will have a chance to edit before posting)</p>" );
   */ 
          popup.show();
-         dot.css({'left':(20+e.pageX)+"px",'top':e.pageY+"px"});
-         dot.show();
+         dotdiv.css({'left':(20+e.pageX)+"px",'top':e.pageY+"px"});
+         menu.hide(); 
+         dot.show(); 
+         dotdiv.show();
 	
       //var tabNames = [ 'Link','Short HTML','Long HTML','Twitter','Facebook' ];
    
