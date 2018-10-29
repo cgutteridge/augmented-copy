@@ -186,7 +186,7 @@ jQuery(document).ready(function(){
    popup.hide();
 
    var dotdiv = jQuery("<div style='position: absolute;z-index:1000'>");
-   var dot = jQuery("<span style='cursor:pointer;font-size:400%;color:#36f;'>●</span></div>");
+   var dot = jQuery("<span style='cursor:pointer;font-size:400%;opacity:0.5;color:#36f;'>●</span></div>");
    var menu = jQuery("<div style='background-color: black; width:200px; height:200px; padding: 10px; color: white;'>A menu with more options of things to do with the selection.</div>");
    dotdiv.append(dot);
    dotdiv.append(menu);
