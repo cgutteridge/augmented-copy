@@ -5,6 +5,7 @@
 jQuery(document).ready(function(){
 
    var popup;
+   var message;
 
    // initialise selection capture
    var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
@@ -179,9 +180,11 @@ jQuery(document).ready(function(){
    }
 
 
+   message = jQuery("<div style='position: absolute; z-index: 1100;background:black;color:white;padding:10px;'>Copied augmented citation</div>");
+   jQuery('body').append(message);
+   message.hide();
 
-
-   popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'><div style='padding:5px 5%;background-color:#333;color:#ccc;font-family:monospace;border:solid 1px #000'>Enhanced copy enabled!<div style='float:right'>[WHAT IS THIS?] | [DISABLE]</div></div></div>" );
+   popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'><div style='padding:5px 5%;background-color:#333;color:#ccc;font-family:monospace;border:solid 1px #000'>Enhanced citation copy enabled!<div style='float:right'>[WHAT IS THIS?] | [DISABLE]</div></div></div>" );
    jQuery('body').append(popup);
    popup.hide();
 
@@ -369,6 +372,10 @@ jQuery(document).ready(function(){
 
          // remove temporary DOM object
          citation.remove();
+
+         message.show();
+         message.css({'left':(dotdiv.position().left-message.outerWidth()/2)+"px",'top':(dotdiv.position().top-message.outerHeight()-10)+"px"});
+	 message.fadeOut( 2000 );
 
          return false; // stop the normal copy op
       });
