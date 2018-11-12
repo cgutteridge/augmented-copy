@@ -180,7 +180,7 @@ jQuery(document).ready(function(){
    }
 
 
-   message = jQuery("<div style='position: absolute; z-index: 1100;background:black;color:white;padding:10px;'>Copied augmented citation</div>");
+   message = jQuery("<div style='position: absolute; z-index: 1100;background:black;color:white;padding:10px;'></div>");
    jQuery('body').append(message);
    message.hide();
 
@@ -190,7 +190,7 @@ jQuery(document).ready(function(){
 
    var dotdiv = jQuery("<div style='position: absolute;z-index:1000'>");
    var dot = jQuery("<span style='cursor:pointer;font-size:400%;opacity:0.5;color:#36f;'>●</span></div>");
-   var menu = jQuery("<div style='background-color: black; width:200px; height:200px; padding: 10px; color: white;'>A menu with more options of things to do with the selection.</div>");
+   var menu = jQuery("<div style='background-color: black; width:200px; height:200px; color: white;'>A menu with more options of things to do with the selection.</div>");
    dotdiv.append(dot);
    dotdiv.append(menu);
    dotdiv.mouseover(function() { menu.show(); dot.hide();} );
@@ -198,6 +198,9 @@ jQuery(document).ready(function(){
    jQuery('body').append(dotdiv);
    // don't hide the popup when we click inside it
    popup.mouseup( function() { return false; } );
+
+   var dotx;
+   var doty;
 
    jQuery('body').mouseup( function() {
       popup.hide();
@@ -271,6 +274,40 @@ jQuery(document).ready(function(){
       return contextRange; 
    }
 
+   // from https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f
+   const copyTextToClipboard = str => {
+      var el = jQuery( "<textarea></textarea>").val(str).attr('readonly','readonly').css('position','absolute').css('left','-9999px');
+      jQuery('body').append(el);
+      clearSelections();
+      el.select();                                    // Select the <textarea> content
+      document.execCommand('copy');                   // Copy - only works as a result of a user action (e.g. click events)
+      el.remove();
+   };
+   const copyDOMToClipboard = dom => {
+      clearSelections();
+      // make sure there's stuff before and after 'dom' so we only copy it and not the wrapping nodes
+      var el = jQuery( "<div></div>").css('position','absolute').css('left','-9999px').append("<div></div>").append( dom ).append("<div></div>");
+      jQuery( 'body' ).append( el );
+      var range = document.createRange();
+      range.selectNode(dom[0]);
+      window.getSelection().addRange(range);
+      document.execCommand('copy');     
+      el.remove();
+   };
+
+   function clearSelections() {
+      if (window.getSelection) {
+        if (window.getSelection().empty) {  // Chrome
+          window.getSelection().empty();
+        } else if (window.getSelection().removeAllRanges) {  // Firefox
+          window.getSelection().removeAllRanges();
+        }
+      } else if (document.selection) {  // IE?
+        document.selection.empty();
+      }
+   }
+
+
    function activateContextArea( context, locSpec ) {
       
       var contextUrl = pageInfo.url+"#"+locSpec;
@@ -278,12 +315,62 @@ jQuery(document).ready(function(){
       context.mouseup( function(e) {
 
          contextRange = getSelectionRangeInContext(context);
+         var selection = window.getSelection();
+         var realrange = selection.getRangeAt(0);
          if( !contextRange ) { 
             return true; // propagate event
          }
 
          // Create popup text 
          var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
+         var author = findAuthor( context );
+
+	 // setup menu
+         menu.text("");
+
+       	 function makeMenu(text,fn) {  
+         	menu.append( 
+		    jQuery('<div>'+text+'</div>')
+			.css('padding','2px','5px')
+			.css('border','solid 1px black')
+			.css('cursor','pointer')
+			.mouseover(function(){jQuery(this).css('background-color','white').css('color','black');})
+			.mouseout(function(){jQuery(this).css('background-color','black').css('color','white');})
+			.click(fn)
+		);
+	}
+
+         makeMenu( 
+		"Copy hires link", 
+		function(event){
+			copyTextToClipboard( link );
+       			flashMessage("Copied hires link");
+			menu.hide();
+			dot.show();
+		});
+         makeMenu( 
+		"Copy citation", 
+		function(event){
+			var blockQuote = jQuery( '<blockquote></blockquote>' )
+				.attr( "cite", link )
+				.append( realrange.cloneContents() );
+			var title = jQuery( "<a></a>").attr('href',link ).text(pageInfo.title);
+			blockQuote.append( jQuery( '<cite style="display:block">- </cite>').append( title ))
+         		if( author && author.name ) {
+				var a = jQuery( "<a></a>").text( author.name );
+         			if( author && author.url ) {
+					a.attr( "href", author.url );
+         			}
+				blockQuote.append( jQuery.parseHTML( ", " ), a );
+			}
+			blockQuote.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
+			copyDOMToClipboard( blockQuote );
+       			flashMessage("Copied HTML Citation");
+			menu.hide();
+			dot.show();
+		});
+
+ 
 /*
          blocksByName['Link'].html( "<p>To link directly to this range use:</p><p><tt><a href='"+link+"'>"+link+"</a></tt></p>" );
    
@@ -307,7 +394,9 @@ jQuery(document).ready(function(){
          blocksByName['Facebook'].html("<p><a href='"+faceLink+"'>Share this on the Facebooks</a> (you will have a chance to edit before posting)</p>" );
   */ 
          popup.show();
-         dotdiv.css({'left':(20+e.pageX)+"px",'top':e.pageY+"px"});
+         dotx = 20+e.pageX;
+         doty = e.pageY;
+         dotdiv.css({'left':dotx+"px",'top':doty+"px"});
          menu.hide(); 
          dot.show(); 
          dotdiv.show();
@@ -333,8 +422,8 @@ jQuery(document).ready(function(){
          var author = findAuthor( context );
 
          // create the thing we really want to copy
-         var citation = jQuery('<blockquote></blockquote>');
-         citation.attr('cite', link );
+         var citation = jQuery('<span></span>');
+         citation.attr('data-source', link );
          citation.attr('data-title', pageInfo.title );
          if( author && author.name ) {
             citation.attr('data-author-name', author.name );
@@ -372,14 +461,19 @@ jQuery(document).ready(function(){
 
          // remove temporary DOM object
          citation.remove();
-
-         message.show();
-         message.css({'left':(dotdiv.position().left-message.outerWidth()/2)+"px",'top':(dotdiv.position().top-message.outerHeight()-10)+"px"});
-	 message.fadeOut( 2000 );
+   
+         flashMessage("Copied augmented citation");
 
          return false; // stop the normal copy op
       });
 
+   }
+
+   function flashMessage( text ) {
+      message.text(text);
+      message.show();
+      message.css({'left':(dotx-message.outerWidth()/2)+"px",'top':(doty-message.outerHeight()-10)+"px"});
+      message.fadeOut( 2000 );
    }
 
    // try to find the name and or URL of an author for the given context.
