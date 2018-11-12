@@ -28,7 +28,7 @@ jQuery(document).ready(function(){
          activateContextArea( jQuery(e), locSpec );
       });
    } else {
-      var post = jQuery( ".post" );
+      var post = jQuery( ".post" ).first();
       if( post.length ) {
          // use the .post, with an ID for preference.
          var locSpec = "";
@@ -190,7 +190,7 @@ jQuery(document).ready(function(){
 
    var dotdiv = jQuery("<div style='position: absolute;z-index:1000'>");
    var dot = jQuery("<span style='cursor:pointer;font-size:400%;opacity:0.5;color:#36f;'>●</span></div>");
-   var menu = jQuery("<div style='background-color: black; width:200px; height:200px; color: white;'>A menu with more options of things to do with the selection.</div>");
+   var menu = jQuery("<div style='background-color: black; color: white;'>A menu with more options of things to do with the selection.</div>");
    dotdiv.append(dot);
    dotdiv.append(menu);
    dotdiv.mouseover(function() { menu.show(); dot.hide();} );
@@ -309,7 +309,6 @@ jQuery(document).ready(function(){
 
 
    function activateContextArea( context, locSpec ) {
-      
       var contextUrl = pageInfo.url+"#"+locSpec;
 
       context.mouseup( function(e) {
@@ -342,7 +341,7 @@ jQuery(document).ready(function(){
 
          makeMenu( 
 		"Copy hires link", 
-		function(event){
+		function(){
 			copyTextToClipboard( link );
        			flashMessage("Copied hires link");
 			menu.hide();
@@ -350,7 +349,7 @@ jQuery(document).ready(function(){
 		});
          makeMenu( 
 		"Copy citation", 
-		function(event){
+		function(){
 			var blockQuote = jQuery( '<blockquote></blockquote>' )
 				.attr( "cite", link )
 				.append( realrange.cloneContents() );
@@ -370,6 +369,29 @@ jQuery(document).ready(function(){
 			dot.show();
 		});
 
+        makeMenu( 
+		"Tweet this", 
+		function(){
+         		var tweet = "\""+trimText( contextRange.text, 240 )+"\" - "+link;
+         		var twitLink = "https://twitter.com/intent/tweet?text="+encodeURIComponent(tweet)+"&source=webclient";
+			window.open(twitLink, 'newwindow', 'width=500, height=380'); 
+		}
+	);
+        makeMenu( 
+		"Facebook this", 
+		function(){
+         		var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link);
+			window.open(faceLink, 'newwindow', 'width=500, height=380'); 
+		}
+	);
+        makeMenu( 
+		"Google this", 
+		function(){
+         		var googleLink = "https://www.google.com/search?q="+encodeURIComponent(contextRange.text);
+			window.open(googleLink, '_blank');
+		}
+	);
+   
  
 /*
          blocksByName['Link'].html( "<p>To link directly to this range use:</p><p><tt><a href='"+link+"'>"+link+"</a></tt></p>" );
@@ -385,13 +407,6 @@ jQuery(document).ready(function(){
          blocksByName['Long HTML'].html( '' ).append( jQuery( '<textarea style="max-width:100%;height:10em;width:100%;font-family:monospace">' ).val( "<blockquote>\""+contextRange.text+"\"</blockquote>\n<div>- "+toHTML(cite2)+"</div>" ) );
    
          blocksByName['About'].html('<p>Ultralink.js was written by <a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Guuteridge</a> for the <a href="http://doug-50.info/">Doug@50</a> project.</p><p>It\'s available under the GPL license, at <a href="https://github.com/cgutteridge/ultralink/">GitHub</a>.</p>' );
-   
-         var tweet = "\""+trimText( contextRange.text, 240 )+"\" - "+link;
-         var twitLink = "https://twitter.com/intent/tweet?text="+encodeURIComponent(tweet)+"&source=webclient";
-         blocksByName['Twitter'].html("<p><a href='"+twitLink+"'>Tweet this</a> (you will have a chance to edit before tweeting)</p>" );
-   
-         var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link);
-         blocksByName['Facebook'].html("<p><a href='"+faceLink+"'>Share this on the Facebooks</a> (you will have a chance to edit before posting)</p>" );
   */ 
          popup.show();
          dotx = 20+e.pageX;
