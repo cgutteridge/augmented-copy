@@ -6,6 +6,7 @@ jQuery(document).ready(function(){
 
    var popup;
    var message;
+   var whatisthis;
 
    // initialise selection capture
    var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
@@ -17,6 +18,7 @@ jQuery(document).ready(function(){
    pageInfo.url = window.location.href.replace( /#.*$/, '' );
 
    var contexts = {};
+
 
    // this is the actual article in the page that the reference looks at, ignoring the outer template which may change over time
    // getting <article>s is probably better than using .post
@@ -179,15 +181,6 @@ jQuery(document).ready(function(){
       // how to handle if the selection is the very last character?
    }
 
-
-   message = jQuery("<div style='position: absolute; z-index: 1100;background:black;color:white;padding:10px;'></div>");
-   jQuery('body').append(message);
-   message.hide();
-
-   popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'><div style='padding:5px 5%;background-color:#333;color:#ccc;font-family:monospace;border:solid 1px #000'>Enhanced citation copy enabled!<div style='float:right'>[WHAT IS THIS?] | [DISABLE]</div></div></div>" );
-   jQuery('body').append(popup);
-   popup.hide();
-
    var dotdiv = jQuery("<div style='position: absolute;z-index:1000'>");
    var dot = jQuery("<span style='cursor:pointer;font-size:400%;opacity:0.5;color:#36f;'>●</span></div>");
    var menu = jQuery("<div style='background-color: black; color: white;'>A menu with more options of things to do with the selection.</div>");
@@ -196,8 +189,27 @@ jQuery(document).ready(function(){
    dotdiv.mouseover(function() { menu.show(); dot.hide();} );
    dotdiv.mouseout(function() { menu.hide(); dot.show();} );
    jQuery('body').append(dotdiv);
+
+   message = jQuery("<div style='position: absolute; z-index: 1100;background:black;color:white;padding:10px;'></div>");
+   jQuery('body').append(message);
+   message.hide();
+
+   var about=jQuery( "<div><p>This is a javascript tool added to this website which modifies the copy behaviour to insert additional citation information into the HTML version of the clipboard. If you copy normally you shouldn't notice any undesired behaviour. However, the information about where and when you copied from are captured inside the attributes, and may be read if you paste into tools that are looking for it.</p><p>The blue dot gives a menu of other options including copying a high resolution link, which when followed back to this page will highlight the selection, and an option to copy a full HTML citation of the selected area in which the citation information will be visible.</p><p>This is part of a set of experiments to <a href='http://doug-50.info/'>celebrate the 50th aniversary</a> of the famous <a href='https://en.wikipedia.org/wiki/The_Mother_of_All_Demos'>Doug Englebart demo</a>, which isn't as famous as it should be!</p><p>Code by <a href='http://twitter.com/cgutteridge'>Christopher Gutteridge</a>, design by Christopher Gutteridge and Frode Hegland.</p></div>" ).hide();
+   about.find("a").css("color","white");
+   about.append( jQuery( "<span>Thanks, hide this again</span>").css("background-color","rgb(255,255,255,0.1)").css("padding","0 10px").css( "cursor","pointer").click( function fn(){about.hide();tools.show();} ) );
+   whatisthis = jQuery("<span>What is this?</span>").css("background-color","rgb(255,255,255,0.1)").css("padding","0 10px").css( "cursor","pointer").click( function fn(){about.show();tools.hide();} );
+   var tools = jQuery("<div>Enhanced citation copy enabled!</div>").append(jQuery("<div style='float:right'></div>").append( whatisthis ));
+
+
+   popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'></div>");
+   var popupInner = jQuery("<div style='padding:5px 5%;background-color:#333;color:#ccc;font-family:monospace;border:solid 1px #000'></div>" );
+   popup.append(popupInner);
+   popupInner.append(about, tools);
+   jQuery('body').append(popup);
+   popup.hide();
    // don't hide the popup when we click inside it
-   popup.mouseup( function() { return false; } );
+   popup.mouseup( function(event) { event.stopPropagation(); } );
+
 
    var dotx;
    var doty;
@@ -330,26 +342,31 @@ jQuery(document).ready(function(){
        	 function makeMenu(text,fn) {  
          	menu.append( 
 		    jQuery('<div>'+text+'</div>')
-			.css('padding','2px','5px')
+			.css('padding','2px 10px')
 			.css('border','solid 1px black')
 			.css('cursor','pointer')
 			.mouseover(function(){jQuery(this).css('background-color','white').css('color','black');})
 			.mouseout(function(){jQuery(this).css('background-color','black').css('color','white');})
-			.click(fn)
+			.click(function(event) {
+				event.stopPropagation();
+				fn(event);
+      				clearSelections();
+      				window.getSelection().addRange(realrange);
+				popup.show();
+      				dotdiv.show();
+			})
 		);
 	}
 
          makeMenu( 
-		"Copy hires link", 
-		function(){
+		"Copy hires URL", 
+		function(event){
 			copyTextToClipboard( link );
-       			flashMessage("Copied hires link");
-			menu.hide();
-			dot.show();
+       			flashMessage("Copied hires URL");
 		});
          makeMenu( 
 		"Copy citation", 
-		function(){
+		function(event){
 			var blockQuote = jQuery( '<blockquote></blockquote>' )
 				.attr( "cite", link )
 				.append( realrange.cloneContents() );
@@ -365,30 +382,34 @@ jQuery(document).ready(function(){
 			blockQuote.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
 			copyDOMToClipboard( blockQuote );
        			flashMessage("Copied HTML Citation");
-			menu.hide();
-			dot.show();
 		});
 
         makeMenu( 
-		"Tweet this", 
-		function(){
+		"Tweet it", 
+		function(event){
          		var tweet = "\""+trimText( contextRange.text, 240 )+"\" - "+link;
          		var twitLink = "https://twitter.com/intent/tweet?text="+encodeURIComponent(tweet)+"&source=webclient";
 			window.open(twitLink, 'newwindow', 'width=500, height=380'); 
 		}
 	);
         makeMenu( 
-		"Facebook this", 
-		function(){
+		"Facebook it", 
+		function(event){
          		var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link);
 			window.open(faceLink, 'newwindow', 'width=500, height=380'); 
 		}
 	);
         makeMenu( 
-		"Google this", 
-		function(){
+		"Google it", 
+		function(event){
          		var googleLink = "https://www.google.com/search?q="+encodeURIComponent(contextRange.text);
 			window.open(googleLink, '_blank');
+		}
+	);
+        makeMenu( 
+		"About this tool", 
+		function(event){
+			whatisthis.click();
 		}
 	);
    
