@@ -336,7 +336,7 @@ jQuery(document).ready(function(){
          var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
          var author = findAuthor( context );
 
-	 // setup menu
+          // setup menu
          menu.text("");
 
        	 function makeMenu(text,fn) {  
@@ -414,21 +414,6 @@ jQuery(document).ready(function(){
 	);
    
  
-/*
-         blocksByName['Link'].html( "<p>To link directly to this range use:</p><p><tt><a href='"+link+"'>"+link+"</a></tt></p>" );
-   
-         var sourceLink = jQuery( "<a>Source</a>" );
-         sourceLink.attr("href",link).attr("title",pageInfo.title);
-         var cite = jQuery("<cite></cite>").append(sourceLink);
-         blocksByName['Short HTML'].html( '' ).append( jQuery( '<textarea style="max-width:100%;height:10em;width:100%;font-family:monospace">' ).val( "<q>"+trimText( contextRange.text, 50 )+"</q> - "+toHTML(cite) ) );
-   
-         var sourceLink2 = jQuery( "<a></a>" );
-         sourceLink2.attr("href",link).text(pageInfo.title+", Character range "+contextRange.from+"-"+contextRange.to );
-         var cite2 = jQuery("<cite></cite>").append(sourceLink2);
-         blocksByName['Long HTML'].html( '' ).append( jQuery( '<textarea style="max-width:100%;height:10em;width:100%;font-family:monospace">' ).val( "<blockquote>\""+contextRange.text+"\"</blockquote>\n<div>- "+toHTML(cite2)+"</div>" ) );
-   
-         blocksByName['About'].html('<p>Ultralink.js was written by <a href="http://www.ecs.soton.ac.uk/people/cjg">Christopher Guuteridge</a> for the <a href="http://doug-50.info/">Doug@50</a> project.</p><p>It\'s available under the GPL license, at <a href="https://github.com/cgutteridge/ultralink/">GitHub</a>.</p>' );
-  */ 
          popup.show();
          dotx = 20+e.pageX;
          doty = e.pageY;
@@ -437,9 +422,6 @@ jQuery(document).ready(function(){
          dot.show(); 
          dotdiv.show();
 	
-      //var tabNames = [ 'Link','Short HTML','Long HTML','Twitter','Facebook' ];
-   
-         
          return false; // don't propagate event
       });
 
@@ -459,39 +441,20 @@ jQuery(document).ready(function(){
 
          // create the thing we really want to copy
          var citation = jQuery('<span></span>');
-         citation.attr('data-source', link );
-         citation.attr('data-title', pageInfo.title );
+         citation.attr('data-citation-source', link );
+         citation.attr('data-citation-title', pageInfo.title );
+         citation.attr('data-citation-timestamp',Math.floor(Date.now() / 1000);
          if( author && author.name ) {
-            citation.attr('data-author-name', author.name );
+            citation.attr('data-citation-author-name', author.name );
          }
          if( author && author.url ) {
-            citation.attr('data-author-url', author.url );
+            citation.attr('data-citation-author-url', author.url );
          }
          citation.append(realrange.cloneContents());
          var wrapper = jQuery('<div></div>');
          wrapper.append(citation);
    
-         var json = {
-            jrnlCitation: true,
-            comment: "This is a demo format. Probably it will be replaced with JSON-LD of dcterms+bibo",
-            version: 0.1,
-            citation: {
-               title: pageInfo.title,
-               url: link,
-               timestamp: Math.floor(Date.now() / 1000),
-               text: citation.text(),
-               html: citation.html()
-            }
-         };
-         if( author && author.name ) {
-            json.citation.author=author.name;
-         }
-         if( author && author.url ) {
-            json.citation.authorURL=author.url;
-         }
-   
          var clipboardData = event.clipboardData || window.clipboardData || event.originalEvent.clipboardData;
-         clipboardData.setData('application/json', JSON.stringify( json, null,"\t" ));
          clipboardData.setData('text/html', wrapper.html() );
          clipboardData.setData('text/plain', wrapper.text() );
 
