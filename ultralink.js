@@ -77,10 +77,10 @@ jQuery(document).ready(function(){
       }
 
       var range = l2[1].split( /-/ );
-      var startInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>[[</div>");
-      var endInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>]]</div>");
-      var startLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='background-color:#000;color:#fff;padding:0px 1em; border-radius:1em'>linked-range start</div><div style='text-align:center;color:#000;line-height:70%;font-size:200%'>▼</div></div>" );
-      var endLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='text-align:center;color:#000;line-height:50%;font-size:200%'>▲</div><div style='background-color:#000;color:#fff;padding:0px 1em;border-radius:1em;'>linked-range end</div></div>" );
+      var startInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>&#x201C;</div>");
+      var endInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>&#x201D;</div>");
+      var startLabel = jQuery( "<div class='ultralink-label' style='opacity:0;pointer-events: none;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='background-color:#000;color:#fff;padding:0px 1em; border-radius:1em'>linked range start</div><div style='text-align:center;color:#000;line-height:70%;font-size:200%'>▼</div></div>" );
+      var endLabel = jQuery( "<div class='ultralink-label' style='opacity:0;pointer-events: none;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='text-align:center;color:#000;line-height:50%;font-size:200%'>▲</div><div style='background-color:#000;color:#fff;padding:0px 1em;border-radius:1em;'>linked range end</div></div>" );
       jQuery('body').append( startLabel );
       jQuery('body').append( endLabel );
       insertAtOffset( highlightContext.get(0), range[0], startInsert.get(0) );
@@ -107,9 +107,14 @@ jQuery(document).ready(function(){
          var endLabelLeft  = endInsert.offset().left + endInsert.width()/2 - endLabel.width()/2;
          if( endLabelLeft >= 0 ) {
             endLabel.css( 'left', endLabelLeft + "px" );
-         }
-         startLabel.show();
-         endLabel.show();
+         } 
+         jQuery( ".ultralink-label" )
+		.show()
+		.animate( {"opacity":"1"}, 1000, function() {
+			setTimeout( function() {
+         			jQuery( ".ultralink-label" ).animate( {"opacity":"0.2"},1000 );
+			},1000);
+		});
       },1000);
    }
 
