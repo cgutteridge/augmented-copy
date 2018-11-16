@@ -443,7 +443,7 @@ jQuery(document).ready(function(){
          var citation = jQuery('<span></span>');
          citation.attr('data-citation-source', link );
          citation.attr('data-citation-title', pageInfo.title );
-         citation.attr('data-citation-timestamp',Math.floor(Date.now() / 1000);
+         citation.attr('data-citation-timestamp',Math.floor(Date.now() / 1000));
          if( author && author.name ) {
             citation.attr('data-citation-author-name', author.name );
          }

@@ -12,4 +12,9 @@ Version: 0.1
 Author URI: http://www.ecs.soton.ac.uk/people/cjg
 */
 
-wp_register_script( 'augmented-copy-script', plugins_url( '/augmented-copy.js', __FILE__ ) );
+function augmented_copy_scripts()
+{
+    wp_register_script( 'augmented-copy-script', plugins_url( '/augmented-copy.js', __FILE__ ), array( 'jquery' ), '0.1', true );
+    wp_enqueue_script( 'augmented-copy-script' );
+}
+add_action( 'wp_enqueue_scripts', 'augmented_copy_scripts' );
