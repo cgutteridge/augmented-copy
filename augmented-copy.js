@@ -7,6 +7,7 @@ jQuery(document).ready(function(){
    var popup;
    var message;
    var whatisthis;
+   var justShownPopup = false;
 
    // initialise selection capture
    var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
@@ -30,7 +31,7 @@ jQuery(document).ready(function(){
          activateContextArea( jQuery(e), locSpec );
       });
    } else {
-      var post = jQuery( ".post" ).first();
+      var post = jQuery( ".hentry" ).first();
       if( post.length ) {
          // use the .post, with an ID for preference.
          var locSpec = "";
@@ -41,13 +42,21 @@ jQuery(document).ready(function(){
          activateContextArea( post, locSpec );
       }
    }
-
    // detect fragment and highlight range if possible
    if( window.location.hash ) {
       var fragment = window.location.hash.replace(/^#/,'');
       highlightLocspec( fragment );
    }
 
+   jQuery('body').mouseup( (e)=> {
+      if( !justShownPopup ) {
+         popup.hide();
+         dotdiv.hide();
+         return true;
+      }
+      justShownPopup = false;
+      return true;
+   });
 
    function highlightLocspec( fragment ) {
 
@@ -214,11 +223,6 @@ jQuery(document).ready(function(){
    var dotx;
    var doty;
 
-   jQuery('body').mouseup( function() {
-      popup.hide();
-      dotdiv.hide();
-      return true; // propagate
-   });
 /*
    var tabs = jQuery("<div style='margin-left:1em;'></div>");
    var closeTab = jQuery( "<div title='Close' style='float:right; border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:1.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #eee'>X</div>" );
@@ -323,6 +327,7 @@ jQuery(document).ready(function(){
    function activateContextArea( context, locSpec ) {
       var contextUrl = pageInfo.url+"#"+locSpec;
 
+
       context.mouseup( function(e) {
 
          contextRange = getSelectionRangeInContext(context);
@@ -331,6 +336,8 @@ jQuery(document).ready(function(){
          if( !contextRange ) { 
             return true; // propagate event
          }
+
+         justShownPopup = true;
 
          // Create popup text 
          var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
@@ -352,7 +359,7 @@ jQuery(document).ready(function(){
 				fn(event);
       				clearSelections();
       				window.getSelection().addRange(realrange);
-				popup.show();
+				//popup.show(); Frode hates this!
       				dotdiv.show();
 			})
 		);
@@ -414,16 +421,17 @@ jQuery(document).ready(function(){
 	);
    
  
-         popup.show();
+
+         //popup.show(); to stop sad Frode
          dotx = 20+e.pageX;
          doty = e.pageY;
          dotdiv.css({'left':dotx+"px",'top':doty+"px"});
          menu.hide(); 
          dot.show(); 
          dotdiv.show();
-	
-         return false; // don't propagate event
+         return true; // propagate event
       });
+
 
 
       /* initialise enhancd copy */
@@ -463,7 +471,7 @@ jQuery(document).ready(function(){
    
          flashMessage("Copied augmented citation");
 
-         return false; // stop the normal copy op
+         return true; // stop the normal copy op
       });
 
    }
