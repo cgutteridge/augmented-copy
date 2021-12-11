@@ -390,7 +390,44 @@ jQuery(document).ready(function(){
 			copyDOMToClipboard( blockQuote );
        			flashMessage("Copied HTML Citation");
 		});
+         makeMenu( 
+		"Copy visual meta", 
+		function(event){
+         		var sel = window.getSelection();
+         		var realrange = sel.getRangeAt(0);
 
+         		var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
+         		var author = findAuthor( context );
+			var title = pageInfo.title;
+			var timestamp = Math.floor(Date.now() / 1000);
+			var published = findPublished( context );
+
+         		// create the thing we really want to copy
+         		//if( author && author.url ) { }
+
+			var vm = "";
+			vm += "@{visual-meta-start}\n";
+			vm += "\n";
+         		if( author && author.name ) {
+   				vm += "author = {"+author.name+"}\n";
+			}
+   			vm += "title = {"+title+"}\n";
+         		if( published ) {
+				var mmap = { 
+					'01':'jan', '02':'feb', '03':'mar', '04':'apr', '05':'may', '06':'jun',
+					'07':'jul', '08':'aug', '09':'sep', '10':'oct', '11':'nov', '12':'dec' };
+   				vm += "year = {"+published.substring(0,4)+"}\n";
+   				vm += "month = {"+mmap[published.substring(5,7)]+"}\n";
+   				vm += "day = {"+published.substring(8,10)+"}\n";
+			}
+   			//vm += sprintf("year = {%s}\n,
+			vm += "\n";
+			vm += "@{visual-meta-end}\n";
+   		
+			copyTextToClipboard( vm );
+		
+         		flashMessage("Copied visual meta");
+		});
         makeMenu( 
 		"Tweet it", 
 		function(event){
@@ -446,6 +483,7 @@ jQuery(document).ready(function(){
    
          var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
          var author = findAuthor( context );
+         var published = findPublished( context );
 
          // create the thing we really want to copy
          var citation = jQuery('<span></span>');
@@ -458,6 +496,7 @@ jQuery(document).ready(function(){
          if( author && author.url ) {
             citation.attr('data-citation-author-url', author.url );
          }
+	
          citation.append(realrange.cloneContents());
          var wrapper = jQuery('<div></div>');
          wrapper.append(citation);
@@ -481,6 +520,19 @@ jQuery(document).ready(function(){
       message.show();
       message.css({'left':(dotx-message.outerWidth()/2)+"px",'top':(doty-message.outerHeight()-10)+"px"});
       message.fadeOut( 2000 );
+   }
+
+   // try to find published date for the given context.
+   function findPublished( context ) {
+      var published = context.find( '.published' );
+      if( !published ) {
+         return false;
+      }
+      var date_string = published.attr('title');
+      if( !date_string ) {
+         return false;
+      }
+      return date_string;
    }
 
    // try to find the name and or URL of an author for the given context.
