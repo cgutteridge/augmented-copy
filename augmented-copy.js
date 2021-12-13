@@ -548,33 +548,40 @@ jQuery(document).ready(function(){
    // try to find the name and or URL of an author for the given context.
    function findAuthor( context ) {
       var vcard = context.find( '.author.vcard' );
-      if( !vcard ) {
-         return false;
+      if( vcard ) {
+         var fn = vcard.find( '.fn');
+         var n = vcard.find( '.n');
+         var url = vcard.find('.url');
+         var author = {};
+         var matched = false;
+    
+         if( url ) { 
+            author.url = url.attr('href');
+            matched = true;
+         } 
+         if( fn ) { 
+            author.name = fn.text();
+            matched = true;
+         } 
+         else if( n ) { 
+            author.name = n.text();
+            matched = true;
+         } 
+   
+         if( !matched ) {
+            return false;
+         } 
+         return author;
       }
-
-      var fn = vcard.find( '.fn');
-      var n = vcard.find( '.n');
-      var url = vcard.find('.url');
-      var author = {};
-      var matched = false;
- 
-      if( url ) { 
-         author.url = url.attr('href');
-         matched = true;
-      } 
-      if( fn ) { 
-         author.name = fn.text();
-         matched = true;
-      } 
-      else if( n ) { 
-         author.name = n.text();
-         matched = true;
+      var postauth = context.find( ".post-author a" );
+      if( postauth ) {
+         var author = {};
+         author.name = postauth.text();
+         author.url = postauth.attr('href');
+         return author;
       } 
 
-      if( !matched ) {
-         return false;
-      } 
-      return author;
+      return false;
    }
 
    // assumes DOM nodes not jQuery
