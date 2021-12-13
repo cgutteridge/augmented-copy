@@ -364,7 +364,7 @@ jQuery(document).ready(function(){
 			})
 		);
 	}
-
+	
          makeMenu( 
 		"Copy hires URL", 
 		function(event){
