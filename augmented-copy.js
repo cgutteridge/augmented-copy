@@ -535,14 +535,19 @@ jQuery(document).ready(function(){
    // try to find published date for the given context.
    function findPublished( context ) {
       var published = context.find( '.published' );
-      if( !published ) {
-         return false;
+      if( published ) {
+         var date_string = published.attr('title');
+         if( !date_string ) {
+            return false;
+         }
+         return date_string;
       }
-      var date_string = published.attr('title');
-      if( !date_string ) {
-         return false;
+      var postdate = context.find( '.post-date' );
+      if( postdate ) { 
+         var time_t = Date.parse(postdate.text());
+         return time_t.toISOString();
       }
-      return date_string;
+      return false;
    }
 
    // try to find the name and or URL of an author for the given context.
