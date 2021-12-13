@@ -391,7 +391,7 @@ jQuery(document).ready(function(){
        			flashMessage("Copied HTML Citation");
 		});
          makeMenu( 
-		"Copy visual meta", 
+		"Copy BibTeX", 
 		function(event){
          		var sel = window.getSelection();
          		var realrange = sel.getRangeAt(0);
@@ -402,27 +402,37 @@ jQuery(document).ready(function(){
 			var timestamp = Math.floor(Date.now() / 1000);
 			var published = findPublished( context );
 
-         		// create the thing we really want to copy
-         		//if( author && author.url ) { }
-
-			var vm = "";
-			vm += "@{visual-meta-start}\n";
-			vm += "\n";
+			var id = "";
          		if( author && author.name ) {
-   				vm += "author = {"+author.name+"}\n";
+				id+=author.name.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
+				id+=":";
 			}
-   			vm += "title = {"+title+"}\n";
+			id+=title.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
+         		if( published ) {
+				id+=":"+published.substring(0,10);
+			}
+
+			// nb this isn't yet doing any escaping on the strings which isn't ideal
+			var vm = "";
+			//vm += "@{visual-meta-start}\n";
+			//vm += "\n";
+			vm += "@article{"+id+",\n";
+         		if( author && author.name ) {
+   				vm += "author = \""+author.name+"\",\n";
+			}
+   			vm += "title = \""+title+"\",\n";
          		if( published ) {
 				var mmap = { 
 					'01':'jan', '02':'feb', '03':'mar', '04':'apr', '05':'may', '06':'jun',
 					'07':'jul', '08':'aug', '09':'sep', '10':'oct', '11':'nov', '12':'dec' };
-   				vm += "year = {"+published.substring(0,4)+"}\n";
-   				vm += "month = {"+mmap[published.substring(5,7)]+"}\n";
-   				vm += "day = {"+published.substring(8,10)+"}\n";
+   				vm += "year = \""+published.substring(0,4)+"\",\n";
+   				vm += "month = \""+mmap[published.substring(5,7)]+"\",\n";
+   				vm += "day = \""+published.substring(8,10)+"\",\n";
 			}
-   			//vm += sprintf("year = {%s}\n,
-			vm += "\n";
-			vm += "@{visual-meta-end}\n";
+			vm += "url = \""+link+"\"\n";
+			vm += "}\n";
+			//vm += "\n";
+			//vm += "@{visual-meta-end}\n";
    		
 			copyTextToClipboard( vm );
 		
