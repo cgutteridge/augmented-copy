@@ -545,7 +545,7 @@ jQuery(document).ready(function(){
       var postdate = context.find( '.post-date' );
       if( postdate.length ) { 
          var time_t = Date.parse(postdate.text());
-         return time_t.toISOString();
+         return new Date( time_t ).toISOString();
       }
       return false;
    }
