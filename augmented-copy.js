@@ -535,7 +535,7 @@ jQuery(document).ready(function(){
    // try to find published date for the given context.
    function findPublished( context ) {
       var published = context.find( '.published' );
-      if( published ) {
+      if( published.length ) {
          var date_string = published.attr('title');
          if( !date_string ) {
             return false;
@@ -543,7 +543,7 @@ jQuery(document).ready(function(){
          return date_string;
       }
       var postdate = context.find( '.post-date' );
-      if( postdate ) { 
+      if( postdate.length ) { 
          var time_t = Date.parse(postdate.text());
          return time_t.toISOString();
       }
@@ -553,7 +553,7 @@ jQuery(document).ready(function(){
    // try to find the name and or URL of an author for the given context.
    function findAuthor( context ) {
       var vcard = context.find( '.author.vcard' );
-      if( vcard ) {
+      if( vcard.length ) {
          var fn = vcard.find( '.fn');
          var n = vcard.find( '.n');
          var url = vcard.find('.url');
@@ -579,7 +579,7 @@ jQuery(document).ready(function(){
          return author;
       }
       var postauth = context.find( ".post-author a" );
-      if( postauth ) {
+      if( postauth.length ) {
          var author = {};
          author.name = postauth.text();
          author.url = postauth.attr('href');
