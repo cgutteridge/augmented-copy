@@ -436,7 +436,7 @@ jQuery(document).ready(function(){
    		
 			copyTextToClipboard( vm );
 		
-         		flashMessage("Copied visual meta");
+         		flashMessage("Copied BibTeX");
 		});
         makeMenu( 
 		"Tweet it", 
