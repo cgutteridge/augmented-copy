@@ -192,7 +192,7 @@ jQuery(document).ready(function(){
 
     var dotdiv = jQuery("<div style='position: absolute;z-index:1000'>");
     var dot = jQuery("<img />").attr('src',bluedot()).attr('width',22);
-    var menu = jQuery("<div style='background-color: black; color: white;'>A menu with more options of things to do with the selection.</div>");
+    var menu = jQuery("<div style='background-color: black; color: white; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);'>A menu with more options of things to do with the selection.</div>");
     dotdiv.append(dot);
     dotdiv.append(menu);
     dotdiv.mouseover(function() { menu.show(); dot.hide();} );
