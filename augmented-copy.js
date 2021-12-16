@@ -447,8 +447,8 @@ jQuery(document).ready(function(){
                     }
                     vm += "url = \""+bibesc(link)+"\",\n";
                     vm += "parenturl = \""+bibesc(parent_link)+"\",\n";
-                    vm += "chars = \""+bibesc(chars)+"\",\n";
-                    vm += "citation = \""+bibesc(citation)+"\"\n";
+                    vm += "charscited = \""+bibesc(chars)+"\",\n";
+                    vm += "quote = \""+bibesc(citation)+"\"\n";
 
                     vm += "}\n";
                     //vm += "\n";
