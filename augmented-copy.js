@@ -402,6 +402,9 @@ jQuery(document).ready(function(){
                     var realrange = sel.getRangeAt(0);
 
                     var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
+                    var parent_link = pageInfo.url;
+                    var chars = ""+contextRange.from+"-"+contextRange.to;
+                    var citation = contextRange.text;
                     var author = findAuthor( context );
                     var title = pageInfo.title;
                     var timestamp = Math.floor(Date.now() / 1000);
@@ -416,6 +419,14 @@ jQuery(document).ready(function(){
                     if( published ) {
                         id+=":"+published.substring(0,10);
                     }
+                    id+=":"+chars;
+       
+                    // escape bibtex special chars {, " or $
+                    function bibesc( text ) {
+                        return text.replace( /([\{\"\$])/, '\\$1' );
+                    }
+ 
+ 
 
                     // nb this isn't yet doing any escaping on the strings which isn't ideal
                     var vm = "";
@@ -423,18 +434,22 @@ jQuery(document).ready(function(){
                     //vm += "\n";
                     vm += "@article{"+id+",\n";
                     if( author && author.name ) {
-                            vm += "author = \""+author.name+"\",\n";
+                            vm += "author = \""+bibesc(author.name)+"\",\n";
                     }
-                    vm += "title = \""+title+"\",\n";
+                    vm += "title = \""+bibesc(title)+"\",\n";
                     if( published ) {
                         var mmap = { 
                             '01':'jan', '02':'feb', '03':'mar', '04':'apr', '05':'may', '06':'jun',
                             '07':'jul', '08':'aug', '09':'sep', '10':'oct', '11':'nov', '12':'dec' };
-                            vm += "year = \""+published.substring(0,4)+"\",\n";
-                            vm += "month = \""+mmap[published.substring(5,7)]+"\",\n";
-                            vm += "day = \""+published.substring(8,10)+"\",\n";
+                            vm += "year = \""+bibesc(published.substring(0,4))+"\",\n";
+                            vm += "month = \""+bibesc(mmap[published.substring(5,7)])+"\",\n";
+                            vm += "day = \""+bibesc(published.substring(8,10))+"\",\n";
                     }
-                    vm += "url = \""+link+"\"\n";
+                    vm += "url = \""+bibesc(link)+"\",\n";
+                    vm += "parenturl = \""+bibesc(parent_link)+"\",\n";
+                    vm += "chars = \""+bibesc(chars)+"\",\n";
+                    vm += "citation = \""+bibesc(citation)+"\"\n";
+
                     vm += "}\n";
                     //vm += "\n";
                     //vm += "@{visual-meta-end}\n";
