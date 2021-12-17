@@ -434,21 +434,21 @@ jQuery(document).ready(function(){
                     //vm += "\n";
                     vm += "@article{"+id+",\n";
                     if( author && author.name ) {
-                            vm += "author = \""+bibesc(author.name)+"\",\n";
+                            vm += "author = {"+bibesc(author.name)+"},\n";
                     }
-                    vm += "title = \""+bibesc(title)+"\",\n";
+                    vm += "title = {"+bibesc(title)+"},\n";
                     if( published ) {
                         var mmap = { 
                             '01':'jan', '02':'feb', '03':'mar', '04':'apr', '05':'may', '06':'jun',
                             '07':'jul', '08':'aug', '09':'sep', '10':'oct', '11':'nov', '12':'dec' };
-                            vm += "year = \""+bibesc(published.substring(0,4))+"\",\n";
-                            vm += "month = \""+bibesc(mmap[published.substring(5,7)])+"\",\n";
-                            vm += "day = \""+bibesc(published.substring(8,10))+"\",\n";
+                            vm += "year = {"+bibesc(published.substring(0,4))+"},\n";
+                            vm += "month = {"+bibesc(mmap[published.substring(5,7)])+"},\n";
+                            vm += "day = {"+bibesc(published.substring(8,10))+"},\n";
                     }
-                    vm += "url = \""+bibesc(link)+"\",\n";
-                    vm += "parenturl = \""+bibesc(parent_link)+"\",\n";
-                    vm += "charscited = \""+bibesc(chars)+"\",\n";
-                    vm += "quote = \""+bibesc(citation)+"\"\n";
+                    vm += "url = {"+bibesc(link)+"},\n";
+                    vm += "parenturl = {"+bibesc(parent_link)+"},\n";
+                    vm += "charscited = {"+bibesc(chars)+"},\n";
+                    vm += "quote = {"+bibesc(citation)+"}\n";
 
                     vm += "}\n";
                     //vm += "\n";

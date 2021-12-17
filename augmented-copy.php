@@ -30,7 +30,7 @@ function augmented_copy_filter_the_content_in_the_main_loop( $content ) {
         $options = get_option( 'augmented_copy_options' );
 
         $metabox = "";
-        $metabox .= "<div class='augmented_copy_metadata'>\n";
+        $metabox .= "<div class='augmented_copy_metadata' style='display:none'>\n";
         $metabox .= "<div class='published'>".esc_html__($meta->post_date)."</div>\n";
         $metabox .= "<div class='title'>".esc_html__($meta->post_title)."</div>\n";
         $metabox .= "<div class='guid'>".esc_html__($meta->guid)."</div>\n";
