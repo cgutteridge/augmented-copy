@@ -7,7 +7,7 @@ jQuery(document).ready(function(){
     var popup;
     var message;
     var whatisthis;
-    var justShownPopup = false;
+    var just_shown_popup = false;
 
     // initialise selection capture
     var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
@@ -26,20 +26,20 @@ jQuery(document).ready(function(){
     var articles = jQuery( "article" );
     if( articles.length ) {
         articles.each( function(i,e) { 
-            var locSpec = ';article='+(i+1);
-            contexts[locSpec] = jQuery(e);
-            activateContextArea( jQuery(e), locSpec );
+            var loc_spec = ';article='+(i+1);
+            contexts[loc_spec] = jQuery(e);
+            activateContextArea( jQuery(e), loc_spec );
         });
     } else {
         var post = jQuery( ".hentry" ).first();
         if( post.length ) {
             // use the .post, with an ID for preference.
-            var locSpec = "";
+            var loc_spec = "";
             if( post[0].hasAttribute('id') != '' ) {
-                locSpec += post.attr('id');
+                loc_spec += post.attr('id');
             }
-            contexts[locSpec] = post;
-            activateContextArea( post, locSpec );
+            contexts[loc_spec] = post;
+            activateContextArea( post, loc_spec );
         }
     }
     // detect fragment and highlight range if possible
@@ -49,12 +49,12 @@ jQuery(document).ready(function(){
     }
 
     jQuery('body').mouseup( (e)=> {
-        if( !justShownPopup ) {
+        if( !just_shown_popup ) {
             popup.hide();
             dotdiv.hide();
             return true;
         }
-        justShownPopup = false;
+        just_shown_popup = false;
         return true;
     });
 
@@ -65,19 +65,19 @@ jQuery(document).ready(function(){
             return;
         }
 
-        var locSpecBits = fragment.split( ";" );
-        var charRange = locSpecBits.pop();
-        var locSpecContext = locSpecBits.join( ";" );
+        var loc_specBits = fragment.split( ";" );
+        var charRange = loc_specBits.pop();
+        var loc_specContext = loc_specBits.join( ";" );
 
-        // get the jquery object the locSpecContext indicates. In time this code will
+        // get the jquery object the loc_specContext indicates. In time this code will
         // hopefully become far more cleverer
-        if( !contexts.hasOwnProperty( locSpecContext ) ) {
-            console.log( "unknown context "+locSpecContext );
+        if( !contexts.hasOwnProperty( loc_specContext ) ) {
+            console.log( "unknown context "+loc_specContext );
             console.log( "Valid contexts: "+contexts );
             return;
         }
 
-        var highlightContext = contexts[locSpecContext]; 
+        var highlightContext = contexts[loc_specContext]; 
             console.log( "Valid contexts: "+contexts );
 
         var l2 = charRange.split(/=/);
@@ -210,7 +210,6 @@ jQuery(document).ready(function(){
     whatisthis = jQuery("<span>What is this?</span>").css("background-color","rgb(255,255,255,0.1)").css("padding","0 10px").css( "cursor","pointer").click( function fn(){popup.show();about.show();tools.hide();} );
     var tools = jQuery("<div>Enhanced citation copy enabled!</div>").append(jQuery("<div style='float:right'></div>").append( whatisthis ));
 
-
     var popupInner = jQuery("<div style='padding:5px 5%;background-color:#333;color:#ccc;font-family:monospace;border:solid 1px #000'></div>" );
     popup.append(popupInner);
     popupInner.append(about, tools);
@@ -219,75 +218,44 @@ jQuery(document).ready(function(){
     // don't hide the popup when we click inside it
     popup.mouseup( function(event) { event.stopPropagation(); } );
 
-
     var dotx;
     var doty;
-
-/*
-    var tabs = jQuery("<div style='margin-left:1em;'></div>");
-    var closeTab = jQuery( "<div title='Close' style='float:right; border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:1.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #eee'>X</div>" );
-    var blocks = jQuery("<div style='height:10em;padding:1em;border:solid 2px black; background-color: #eee; border-radius:1em;    box-shadow: 5px 5px 5px ;'></div>");
-    tabs.append(closeTab);
-    closeTab.click(function(){popup.hide();});
-    popup.append(tabs);
-    popup.append(blocks);
-    var tabNames = [ 'Link','Short HTML','Long HTML','Twitter','Facebook','About' ];
-    var blocksByName = [];
-    var tabsByName = [];
-    for( i=0;i<tabNames.length;++i ) {
-        var tab = jQuery( "<div data-tab='"+tabNames[i]+"' style='border-top-left-radius: 0.5em; border-top-right-radius:0.5em;cursor:pointer;margin-right:0.5em; display:inline-block;padding:2px 0.5em; position:relative;top:2px;border:solid 2px black; background-color: #eee'>"+tabNames[i]+"</div>" );
-        var block = jQuery( "<div style=''></div>" );
-        tabs.append(tab);
-        blocks.append(block);
-        tabsByName[tabNames[i]] = tab;
-        blocksByName[tabNames[i]] = block;
-        tab.click( function(){ 
-            var tabName = jQuery(this).attr( 'data-tab' );
-            tabs.children().css('background-color','#666').css('color','white').css( 'border-bottom','solid 1px #000');
-            tabsByName[tabName].css('background-color','#eee').css('color','black').css('border-bottom','solid 2px #eee');
-            blocks.children().hide();
-            blocksByName[tabName].show();
-            closeTab.show();
-        } );
-        tabsByName['Link'].click();
-    }
-*/
 
     // returns an object with the from and to char offset, or false
     function getSelectionRangeInContext(context) {
 
         jQuery('.ultralink-ignore').hide();
         var selection = window.getSelection();
-        var contextRange = {};                                        
+        var context_range = {};                                        
         var fromOff = charOffset( context.get(0), selection.anchorNode) 
         var toOff = charOffset( context.get(0), selection.focusNode);
-        contextRange.text = selection.toString();
+        context_range.text = selection.toString();
         jQuery('.ultralink-ignore').show();
 
         if( fromOff == -1 || toOff == -1 ) {
             // out of scope
             return false; // propagate event
         }
-        contextRange.from = fromOff + selection.anchorOffset;
-        contextRange.to = toOff + selection.focusOffset;
-        if( contextRange.from == contextRange.to ) {
-            // right now this is only fussed with contextRange, not points in the text, so a zero-character selection should be ignored 
+        context_range.from = fromOff + selection.anchorOffset;
+        context_range.to = toOff + selection.focusOffset;
+        if( context_range.from == context_range.to ) {
+            // right now this is only fussed with context_range, not points in the text, so a zero-character selection should be ignored 
             return false; // propagate event
         }
 
-        if( isNaN(contextRange.from) || isNaN(contextRange.to) ) {
+        if( isNaN(context_range.from) || isNaN(context_range.to) ) {
             // out of scope
             return false; // propagate event
         }
         
         // clean up if user selected backwards 
-        if( contextRange.from > contextRange.to ) {
-            var tmp = contextRange.from;
-            contextRange.from = contextRange.to;
-            contextRange.to = tmp;
+        if( context_range.from > context_range.to ) {
+            var tmp = context_range.from;
+            context_range.from = context_range.to;
+            context_range.to = tmp;
         }
         
-        return contextRange; 
+        return context_range; 
     }
 
     // from https://hackernoon.com/copying-text-to-clipboard-with-javascript-df4d4988697f
@@ -323,29 +291,58 @@ jQuery(document).ready(function(){
         }
     }
 
+    function findMeta( context, context_range, loc_spec ) {
+	meta = {};
+        meta.link = pageInfo.url + "#" + loc_spec + ";char="+context_range.from+"-"+context_range.to;
+        meta.parent_link = pageInfo.url;
+        meta.chars = ""+context_range.from+"-"+context_range.to;
+        meta.quote = context_range.text;
+        meta.title = pageInfo.title;
+        meta.timestamp = Math.floor(Date.now() / 1000);
 
-    function activateContextArea( context, locSpec ) {
-        var contextUrl = pageInfo.url+"#"+locSpec;
+        var dom_meta = context.find( '.augmented_copy_metadata' );
+        if( dom_meta.length ) {
+            var published_dom = context.find( '.published' );
+            if( published_dom.length ) { 
+                meta.published = published_dom.text();
+            }
+            var dom_author = dom_meta.find( ".author" );
+            var dom_url = dom_meta.find( ".author_url" );
+            if( dom_author.length || dom_url.length ) {
+                meta.author = {};
+            }
+            if( dom_author.length ) { 
+                meta.author.name = dom_author.text();
+            }
+            if( dom_url.length ) { 
+                meta.author.url = dom_url.text();
+            }
+            // using title from metadata block is preferable, if available
+            var dom_title = dom_meta.find( '.title' );
+            if( dom_title.length ) { 
+                meta.title = dom_title.text();
+            }
+        }
+        return meta;
+    }
+
+    function activateContextArea( context, loc_spec ) {
 
         context.mouseup( function(e) {
+            var real_range = window.getSelection().getRangeAt(0);
+            var context_range = getSelectionRangeInContext(context);
+            var meta = findMeta( context, context_range, loc_spec );
 
-            contextRange = getSelectionRangeInContext(context);
-            var selection = window.getSelection();
-            var realrange = selection.getRangeAt(0);
-            if( !contextRange ) { 
-                return true; // propagate event
+            if( !context_range ) { 
+                return true; // propagate event if nothing selected
             }
 
-            justShownPopup = true;
-
-            // Create popup text 
-            var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
-            var author = findAuthor( context );
+            just_shown_popup = true;
 
             // setup menu
             menu.text("");
 
-            function makeMenu(option, text,fn) { 
+            function makeMenu(option, text, fn) { 
                 // if we have options set and this menu item isn't in the options list, don't show it.
                 if( augmented_copy_options && !augmented_copy_options.includes(option) ) { return; } 
                 menu.append( 
@@ -359,96 +356,84 @@ jQuery(document).ready(function(){
                         event.stopPropagation();
                         fn(event);
                         clearSelections();
-                        window.getSelection().addRange(realrange);
+                        window.getSelection().addRange(real_range);
                         dotdiv.show();
                         menu.hide(); 
                         dot.show();
                     })
                 );
             }
-    
+  
+  
             makeMenu( 
                 "hires",
                 "Copy hires URL", 
                 function(event){
-                    copyTextToClipboard( link );
-                            flashMessage("Copied hires URL");
+                    copyTextToClipboard( meta.link );
+                    flashMessage("Copied hires URL");
                 });
             makeMenu( 
                 "citation",
                 "Copy citation", 
                 function(event){
-                    var blockQuote = jQuery( '<blockquote></blockquote>' )
-                        .attr( "cite", link )
-                        .append( realrange.cloneContents() );
-                    var title = jQuery( "<a></a>").attr('href',link ).text(pageInfo.title);
-                    blockQuote.append( jQuery( '<cite style="display:block">- </cite>').append( title ))
-                    if( author && author.name ) {
-                        var a = jQuery( "<a></a>").text( author.name );
-                        if( author && author.url ) {
-                            a.attr( "href", author.url );
+                    var dom_blockquote = jQuery( '<blockquote></blockquote>' )
+                        .attr( "cite", meta.link )
+                        .append( real_range.cloneContents() );
+                    dom_cite = jQuery( '<cite style="display:block">- </cite>')
+                    dom_cite.append( jQuery( "<a></a>").attr('href',meta.link ).text(meta.title) );
+                    if( meta.author && meta.author.name ) {
+                        var dom_a = jQuery( "<a></a>").text( meta.author.name );
+                        if( meta.author && meta.author.url ) {
+                            dom_a.attr( "href", meta.author.url );
                         }
-                        blockQuote.append( jQuery.parseHTML( ", " ), a );
+                        dom_cite.append( jQuery.parseHTML( ", " ), dom_a );
                     }
-                    blockQuote.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
-                    copyDOMToClipboard( blockQuote );
+                    dom_cite.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
+                    dom_blockquote.append( dom_cite );
+                    copyDOMToClipboard( dom_blockquote );
                     flashMessage("Copied HTML Citation");
                 });
             makeMenu( 
                 "bibtex",
                 "Copy BibTeX", 
                 function(event){
-                    var sel = window.getSelection();
-                    var realrange = sel.getRangeAt(0);
-
-                    var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
-                    var parent_link = pageInfo.url;
-                    var chars = ""+contextRange.from+"-"+contextRange.to;
-                    var citation = contextRange.text;
-                    var author = findAuthor( context );
-                    var title = pageInfo.title;
-                    var timestamp = Math.floor(Date.now() / 1000);
-                    var published = findPublished( context );
-
-                    var id = "";
-                    if( author && author.name ) {
-                        id+=author.name.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
+                    if( meta.author && meta.author.name ) {
+                        var id = "";
+                        id+=meta.author.name.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
                         id+=":";
                     }
-                    id+=title.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
-                    if( published ) {
-                        id+=":"+published.substring(0,10);
+                    id+=meta.title.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
+                    if( meta.published ) {
+                        id+=":"+meta.published.substring(0,10);
                     }
-                    id+=":"+chars;
+                    id+=":"+meta.chars;
        
                     // escape bibtex special chars {, " or $
                     function bibesc( text ) {
                         return text.replace( /([\{\"\$])/, '\\$1' );
                     }
- 
- 
 
                     // nb this isn't yet doing any escaping on the strings which isn't ideal
                     var vm = "";
                     //vm += "@{visual-meta-start}\n";
                     //vm += "\n";
                     vm += "@article{"+id+",\n";
-                    if( author && author.name ) {
-                            vm += "author = {"+bibesc(author.name)+"},\n";
+                    if( meta.author && meta.author.name ) {
+                            vm += "author = {"+bibesc(meta.author.name)+"},\n";
                     }
-                    vm += "title = {"+bibesc(title)+"},\n";
-                    if( published ) {
+                    vm += "title = {"+bibesc(meta.title)+"},\n";
+                    if( meta.published ) {
                         var mmap = { 
                             '01':'jan', '02':'feb', '03':'mar', '04':'apr', '05':'may', '06':'jun',
                             '07':'jul', '08':'aug', '09':'sep', '10':'oct', '11':'nov', '12':'dec' };
-                            vm += "year = {"+bibesc(published.substring(0,4))+"},\n";
-                            vm += "month = {"+bibesc(mmap[published.substring(5,7)])+"},\n";
-                            vm += "day = {"+bibesc(published.substring(8,10))+"},\n";
+                            vm += "year = {"+bibesc(meta.published.substring(0,4))+"},\n";
+                            vm += "month = {"+bibesc(mmap[meta.published.substring(5,7)])+"},\n";
+                            vm += "day = {"+bibesc(meta.published.substring(8,10))+"},\n";
                     }
-                    vm += "url = {"+bibesc(link)+"},\n";
-                    vm += "parenturl = {"+bibesc(parent_link)+"},\n";
-                    vm += "charscited = {"+bibesc(chars)+"},\n";
-                    vm += "quote = {"+bibesc(citation)+"}\n";
+                    vm += "url = {"+bibesc(meta.link)+"},\n";
+                    vm += "parenturl = {"+bibesc(meta.parent_link)+"},\n";
+                    vm += "charscited = {"+bibesc(meta.chars)+"},\n";
+                    vm += "quote = {"+bibesc(meta.quote)+"}\n";
 
                     vm += "}\n";
                     //vm += "\n";
@@ -462,7 +447,7 @@ jQuery(document).ready(function(){
                 "twitter",
                 "Tweet it", 
                 function(event){
-                    var tweet = "\""+trimText( contextRange.text, 240 )+"\" - "+link;
+                    var tweet = "\""+trimText( context_range.text, 240 )+"\" - " + meta.link;
                     var twitLink = "https://twitter.com/intent/tweet?text="+encodeURIComponent(tweet)+"&source=webclient";
                     window.open(twitLink, 'newwindow', 'width=500, height=380'); 
                 }
@@ -471,7 +456,7 @@ jQuery(document).ready(function(){
                 "facebook",
                 "Facebook it", 
                 function(event){
-                    var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(link);
+                    var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(meta.link);
                     window.open(faceLink, 'newwindow', 'width=500, height=380'); 
                 }
             );
@@ -479,7 +464,7 @@ jQuery(document).ready(function(){
                 "google",
                 "Google it", 
                 function(event){
-                    var googleLink = "https://www.google.com/search?q="+encodeURIComponent(contextRange.text);
+                    var googleLink = "https://www.google.com/search?q="+encodeURIComponent(context_range.text);
                     window.open(googleLink, '_blank');
                 }
             );
@@ -506,15 +491,13 @@ jQuery(document).ready(function(){
 
         /* initialise enhancd copy */
         context.on('copy', function(event) {
-            var sel = window.getSelection();
-            var realrange = sel.getRangeAt(0);
-
-            contextRange = getSelectionRangeInContext(context);
-            if( !contextRange ) { 
+            var real_range = window.getSelection().getRangeAt(0);
+            var context_range = getSelectionRangeInContext(context);
+            if( !context_range ) { 
                 return true; // propagate event
             }
     
-            var link = contextUrl + ";char="+contextRange.from+"-"+contextRange.to;
+            var link = contextUrl + ";char="+context_range.from+"-"+context_range.to;
             var author = findAuthor( context );
             var published = findPublished( context );
 
@@ -530,7 +513,7 @@ jQuery(document).ready(function(){
                 citation.attr('data-citation-author-url', author.url );
             }
     
-            citation.append(realrange.cloneContents());
+            citation.append(real_range.cloneContents());
             var wrapper = jQuery('<div></div>');
             wrapper.append(citation);
     
@@ -556,83 +539,6 @@ jQuery(document).ready(function(){
         message.show();
         message.css({'left':(dotx-message.outerWidth()/2)+"px",'top':(doty-message.outerHeight()-10)+"px"});
         message.fadeOut( 2000 );
-    }
-
-    // try to find published date for the given context.
-    function findPublished( context ) {
-        var meta = context.find( '.augmented_copy_metadata' );
-        if( meta.length ) {
-            var published = context.find( '.published' );
-            if( published.length ) { 
-                return published.text();
-            }
-        }
-        var published = context.find( '.published' );
-        if( published.length ) {
-            var date_string = published.attr('title');
-            if( !date_string ) {
-                return false;
-            }
-            return date_string;
-        }
-        var postdate = context.find( '.post-date' );
-        if( postdate.length ) { 
-            var time_t = Date.parse(postdate.text());
-            return new Date( time_t ).toISOString();
-        }
-        return false;
-    }
-
-    // try to find the name and or URL of an author for the given context.
-    function findAuthor( context ) {
-        var meta = context.find( '.augmented_copy_metadata' );
-        if( meta.length ) {
-            var author = {};
-            var name = meta.find( ".author" );
-            var url = meta.find( ".author_url" );
-            if( name.length ) { 
-                author.name = name.text();
-            }
-            if( url.length ) { 
-                author.url = url.text();
-            }
-            return author;
-        }
-        var vcard = context.find( '.author.vcard' );
-        if( vcard.length ) {
-            var fn = vcard.find( '.fn');
-            var n = vcard.find( '.n');
-            var url = vcard.find('.url');
-            var author = {};
-            var matched = false;
-    
-            if( url ) { 
-                author.url = url.attr('href');
-                matched = true;
-            } 
-            if( fn ) { 
-                author.name = fn.text();
-                matched = true;
-            } 
-            else if( n ) { 
-                author.name = n.text();
-                matched = true;
-            } 
-    
-            if( !matched ) {
-                return false;
-            } 
-            return author;
-        }
-        var postauth = context.find( ".post-author a" );
-        if( postauth.length ) {
-            var author = {};
-            author.name = postauth.text();
-            author.url = postauth.attr('href');
-            return author;
-        } 
-
-        return false;
     }
 
     // assumes DOM nodes not jQuery
