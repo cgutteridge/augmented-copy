@@ -292,7 +292,7 @@ jQuery(document).ready(function(){
     }
 
     function findMeta( context, context_range, loc_spec ) {
-	meta = {};
+        meta = {};
         meta.link = pageInfo.url + "#" + loc_spec + ";char="+context_range.from+"-"+context_range.to;
         meta.parent_link = pageInfo.url;
         meta.chars = ""+context_range.from+"-"+context_range.to;
@@ -347,9 +347,7 @@ jQuery(document).ready(function(){
                 if( augmented_copy_options && !augmented_copy_options.includes(option) ) { return; } 
                 menu.append( 
                     jQuery('<div>'+text+'</div>')
-                    .css('padding','2px 10px')
-                    .css('border','solid 1px black')
-                    .css('cursor','pointer')
+                    .css('padding','2px 10px').css('border','solid 1px black').css('cursor','pointer')
                     .mouseover(function(){jQuery(this).css('background-color','white').css('color','black');})
                     .mouseout(function(){jQuery(this).css('background-color','black').css('color','white');})
                     .click(function(event) {
@@ -363,8 +361,65 @@ jQuery(document).ready(function(){
                     })
                 );
             }
+
+            function selectionToHtmlQuote( meta ) {
+                var dom_blockquote = jQuery( '<blockquote></blockquote>' )
+                    .attr( "cite", meta.link )
+                    .append( real_range.cloneContents() );
+                dom_cite = jQuery( '<cite style="display:block">- </cite>')
+                dom_cite.append( jQuery( "<a></a>").attr('href',meta.link ).text(meta.title) );
+                if( meta.author && meta.author.name ) {
+                    var dom_a = jQuery( "<a></a>").text( meta.author.name );
+                    if( meta.author && meta.author.url ) {
+                        dom_a.attr( "href", meta.author.url );
+                    }
+                    dom_cite.append( jQuery.parseHTML( ", " ), dom_a );
+                }
+                dom_cite.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
+                dom_blockquote.append( dom_cite );
+                return dom_blockquote.append;
+            } 
   
-  
+            function selectionToBibTeX( meta ) {
+                if( meta.author && meta.author.name ) {
+                    var id = "";
+                    id+=meta.author.name.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
+                    id+=":";
+                }
+                id+=meta.title.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
+                if( meta.published ) {
+                    id+=":"+meta.published.substring(0,10);
+                }
+                id+=":"+meta.chars;
+   
+                // escape bibtex special chars {, " or $
+                function bibesc( text ) {
+                    return text.replace( /([\{\"\$])/, '\\$1' );
+                }
+
+                // nb this isn't yet doing any escaping on the strings which isn't ideal
+                var bibtex = "";
+                bibtex += "@article{"+id+",\n";
+                if( meta.author && meta.author.name ) {
+                        bibtex += "author = {"+bibesc(meta.author.name)+"},\n";
+                }
+                bibtex += "title = {"+bibesc(meta.title)+"},\n";
+                if( meta.published ) {
+                    var mmap = { 
+                        '01':'jan', '02':'feb', '03':'mar', '04':'apr', '05':'may', '06':'jun',
+                        '07':'jul', '08':'aug', '09':'sep', '10':'oct', '11':'nov', '12':'dec' };
+                        bibtex += "year = {"+bibesc(meta.published.substring(0,4))+"},\n";
+                        bibtex += "month = {"+bibesc(mmap[meta.published.substring(5,7)])+"},\n";
+                        bibtex += "day = {"+bibesc(meta.published.substring(8,10))+"},\n";
+                }
+                bibtex += "url = {"+bibesc(meta.link)+"},\n";
+                bibtex += "parenturl = {"+bibesc(meta.parent_link)+"},\n";
+                bibtex += "charscited = {"+bibesc(meta.chars)+"},\n";
+                bibtex += "quote = {"+bibesc(meta.quote)+"}\n";
+                bibtex += "}\n";
+		return bibtex;
+            }
+ 
             makeMenu( 
                 "hires",
                 "Copy hires URL", 
@@ -376,20 +431,7 @@ jQuery(document).ready(function(){
                 "citation",
                 "Copy citation", 
                 function(event){
-                    var dom_blockquote = jQuery( '<blockquote></blockquote>' )
-                        .attr( "cite", meta.link )
-                        .append( real_range.cloneContents() );
-                    dom_cite = jQuery( '<cite style="display:block">- </cite>')
-                    dom_cite.append( jQuery( "<a></a>").attr('href',meta.link ).text(meta.title) );
-                    if( meta.author && meta.author.name ) {
-                        var dom_a = jQuery( "<a></a>").text( meta.author.name );
-                        if( meta.author && meta.author.url ) {
-                            dom_a.attr( "href", meta.author.url );
-                        }
-                        dom_cite.append( jQuery.parseHTML( ", " ), dom_a );
-                    }
-                    dom_cite.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
-                    dom_blockquote.append( dom_cite );
+                    var dom_blockquote = selectionToHTMLQuote( meta );
                     copyDOMToClipboard( dom_blockquote );
                     flashMessage("Copied HTML Citation");
                 });
@@ -397,50 +439,8 @@ jQuery(document).ready(function(){
                 "bibtex",
                 "Copy BibTeX", 
                 function(event){
-                    if( meta.author && meta.author.name ) {
-                        var id = "";
-                        id+=meta.author.name.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
-                        id+=":";
-                    }
-                    id+=meta.title.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
-                    if( meta.published ) {
-                        id+=":"+meta.published.substring(0,10);
-                    }
-                    id+=":"+meta.chars;
-       
-                    // escape bibtex special chars {, " or $
-                    function bibesc( text ) {
-                        return text.replace( /([\{\"\$])/, '\\$1' );
-                    }
-
-                    // nb this isn't yet doing any escaping on the strings which isn't ideal
-                    var vm = "";
-                    //vm += "@{visual-meta-start}\n";
-                    //vm += "\n";
-                    vm += "@article{"+id+",\n";
-                    if( meta.author && meta.author.name ) {
-                            vm += "author = {"+bibesc(meta.author.name)+"},\n";
-                    }
-                    vm += "title = {"+bibesc(meta.title)+"},\n";
-                    if( meta.published ) {
-                        var mmap = { 
-                            '01':'jan', '02':'feb', '03':'mar', '04':'apr', '05':'may', '06':'jun',
-                            '07':'jul', '08':'aug', '09':'sep', '10':'oct', '11':'nov', '12':'dec' };
-                            vm += "year = {"+bibesc(meta.published.substring(0,4))+"},\n";
-                            vm += "month = {"+bibesc(mmap[meta.published.substring(5,7)])+"},\n";
-                            vm += "day = {"+bibesc(meta.published.substring(8,10))+"},\n";
-                    }
-                    vm += "url = {"+bibesc(meta.link)+"},\n";
-                    vm += "parenturl = {"+bibesc(meta.parent_link)+"},\n";
-                    vm += "charscited = {"+bibesc(meta.chars)+"},\n";
-                    vm += "quote = {"+bibesc(meta.quote)+"}\n";
-
-                    vm += "}\n";
-                    //vm += "\n";
-                    //vm += "@{visual-meta-end}\n";
-            
-                    copyTextToClipboard( vm );
-        
+                    var bibtex = selectionToBibTeX( meta );
+                    copyTextToClipboard( bibtex );
                     flashMessage("Copied BibTeX");
                 });
             makeMenu( 
