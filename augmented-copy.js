@@ -403,19 +403,19 @@ jQuery(document).ready(function(){
                 if( meta.author && meta.author.name ) {
                         bibtex += "author = {"+bibesc(meta.author.name)+"},\n";
                 }
-                bibtex += "title = {"+bibesc(meta.title)+"},\n";
+                bibtex += "    title = {"+bibesc(meta.title)+"},\n";
                 if( meta.published ) {
                     var mmap = { 
                         '01':'jan', '02':'feb', '03':'mar', '04':'apr', '05':'may', '06':'jun',
                         '07':'jul', '08':'aug', '09':'sep', '10':'oct', '11':'nov', '12':'dec' };
-                        bibtex += "year = {"+bibesc(meta.published.substring(0,4))+"},\n";
-                        bibtex += "month = {"+bibesc(mmap[meta.published.substring(5,7)])+"},\n";
-                        bibtex += "day = {"+bibesc(meta.published.substring(8,10))+"},\n";
+                        bibtex += "    year = {"+bibesc(meta.published.substring(0,4))+"},\n";
+                        bibtex += "    month = {"+bibesc(mmap[meta.published.substring(5,7)])+"},\n";
+                        bibtex += "    day = {"+bibesc(meta.published.substring(8,10))+"},\n";
                 }
-                bibtex += "url = {"+bibesc(meta.link)+"},\n";
-                bibtex += "parenturl = {"+bibesc(meta.parent_link)+"},\n";
-                bibtex += "charscited = {"+bibesc(meta.chars)+"},\n";
-                bibtex += "quote = {"+bibesc(meta.quote)+"}\n";
+                bibtex += "    url = {"+bibesc(meta.link)+"},\n";
+                bibtex += "    parenturl = {"+bibesc(meta.parent_link)+"},\n";
+                bibtex += "    charscited = {"+bibesc(meta.chars)+"},\n";
+                bibtex += "    quote = {"+bibesc(meta.quote)+"}\n";
                 bibtex += "}\n";
 		return bibtex;
             }
