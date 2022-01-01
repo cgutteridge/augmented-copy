@@ -4,11 +4,6 @@
 */
 jQuery(document).ready(function(){
 
-    var popup;
-    var message;
-    var whatisthis;
-    var just_shown_popup = false;
-
     // initialise selection capture
     var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
 
@@ -19,7 +14,6 @@ jQuery(document).ready(function(){
     pageInfo.url = window.location.href.replace( /#.*$/, '' );
 
     var contexts = {};
-
 
     // this is the actual article in the page that the reference looks at, ignoring the outer template which may change over time
     // getting <article>s is probably better than using .post
@@ -48,15 +42,58 @@ jQuery(document).ready(function(){
         highlightLocspec( fragment );
     }
 
+    var html_popup;
+    var html_message;
+    var html_what_is_this;
+    var just_shown_popup = false;
+
     jQuery('body').mouseup( (e)=> {
         if( !just_shown_popup ) {
-            popup.hide();
-            dotdiv.hide();
+            html_popup.hide();
+            html_ui_outer.hide();
             return true;
         }
         just_shown_popup = false;
         return true;
     });
+
+    var html_ui_outer = jQuery("<div style='position: absolute;z-index:1000'>");
+    var html_dot = jQuery("<img />").attr('src',bluedot()).attr('width',22);
+    var html_menu = jQuery("<div style='background-color: black; color: white; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);'>A menu with more options of things to do with the selection.</div>");
+    html_ui_outer.append(html_dot);
+    html_ui_outer.append(html_menu);
+    html_ui_outer.mouseover(function() { html_menu.show(); html_dot.hide();} );
+    html_ui_outer.mouseout(function() { html_menu.hide(); html_dot.show();} );
+    jQuery('body').append(html_ui_outer);
+
+    html_message = jQuery("<div style='position: absolute; z-index: 1100;background:black;color:white;padding:10px;'></div>");
+    jQuery('body').append(html_message);
+    html_message.hide();
+
+    html_popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'></div>");
+    var html_about = jQuery( "<div><p>This is a javascript tool added to this website which modifies the copy behaviour to insert additional citation information into the HTML version of the clipboard. If you copy normally you shouldn't notice any undesired behaviour. However, the information about where and when you copied from are captured inside the attributes, and may be read if you paste into tools that are looking for it.</p><p>The blue dot gives a menu of other options including copying a high resolution link, which when followed back to this page will highlight the selection, and an option to copy a full HTML citation of the selected area in which the citation information will be visible.</p><p>This is part of a set of experiments to <a href='http://doug-50.info/'>celebrate the 50th aniversary</a> of the famous <a href='https://en.wikipedia.org/wiki/The_Mother_of_All_Demos'>Doug Englebart demo</a>, which isn't as famous as it should be!</p><p>Code by <a href='http://twitter.com/cgutteridge'>Christopher Gutteridge</a>, design by Christopher Gutteridge and Frode Hegland.</p></div>" ).hide();
+    html_about.find("a").css("color","white");
+    html_about.append( jQuery( "<span>Thanks, hide this again</span>").css("background-color","rgb(255,255,255,0.1)").css("padding","0 10px").css( "cursor","pointer").click( function fn(){html_popup.hide();html_about.hide();html_tools.show();} ) );
+    html_what_is_this = jQuery("<span>What is this?</span>").css("background-color","rgb(255,255,255,0.1)").css("padding","0 10px").css( "cursor","pointer").click( function fn(){html_popup.show();html_about.show();html_tools.hide();} );
+    var html_tools = jQuery("<div>Enhanced citation copy enabled!</div>").append(jQuery("<div style='float:right'></div>").append( html_what_is_this ));
+
+    var html_popup_inner = jQuery("<div style='padding:5px 5%;background-color:#333;color:#ccc;font-family:monospace;border:solid 1px #000'></div>" );
+    html_popup.append(html_popup_inner);
+    html_popup_inner.append(html_about, html_tools);
+    jQuery('body').append(html_popup);
+    html_popup.hide();
+    // don't hide the popup when we click inside it
+    html_popup.mouseup( function(event) { event.stopPropagation(); } );
+
+    var dotx;
+    var doty;
+
+
+
+
+
+
+
 
     function highlightLocspec( fragment ) {
 
@@ -190,37 +227,6 @@ jQuery(document).ready(function(){
         // how to handle if the selection is the very last character?
     }
 
-    var dotdiv = jQuery("<div style='position: absolute;z-index:1000'>");
-    var dot = jQuery("<img />").attr('src',bluedot()).attr('width',22);
-    var menu = jQuery("<div style='background-color: black; color: white; box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);'>A menu with more options of things to do with the selection.</div>");
-    dotdiv.append(dot);
-    dotdiv.append(menu);
-    dotdiv.mouseover(function() { menu.show(); dot.hide();} );
-    dotdiv.mouseout(function() { menu.hide(); dot.show();} );
-    jQuery('body').append(dotdiv);
-
-    message = jQuery("<div style='position: absolute; z-index: 1100;background:black;color:white;padding:10px;'></div>");
-    jQuery('body').append(message);
-    message.hide();
-
-    popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'></div>");
-    var about=jQuery( "<div><p>This is a javascript tool added to this website which modifies the copy behaviour to insert additional citation information into the HTML version of the clipboard. If you copy normally you shouldn't notice any undesired behaviour. However, the information about where and when you copied from are captured inside the attributes, and may be read if you paste into tools that are looking for it.</p><p>The blue dot gives a menu of other options including copying a high resolution link, which when followed back to this page will highlight the selection, and an option to copy a full HTML citation of the selected area in which the citation information will be visible.</p><p>This is part of a set of experiments to <a href='http://doug-50.info/'>celebrate the 50th aniversary</a> of the famous <a href='https://en.wikipedia.org/wiki/The_Mother_of_All_Demos'>Doug Englebart demo</a>, which isn't as famous as it should be!</p><p>Code by <a href='http://twitter.com/cgutteridge'>Christopher Gutteridge</a>, design by Christopher Gutteridge and Frode Hegland.</p></div>" ).hide();
-    about.find("a").css("color","white");
-    about.append( jQuery( "<span>Thanks, hide this again</span>").css("background-color","rgb(255,255,255,0.1)").css("padding","0 10px").css( "cursor","pointer").click( function fn(){popup.hide();about.hide();tools.show();} ) );
-    whatisthis = jQuery("<span>What is this?</span>").css("background-color","rgb(255,255,255,0.1)").css("padding","0 10px").css( "cursor","pointer").click( function fn(){popup.show();about.show();tools.hide();} );
-    var tools = jQuery("<div>Enhanced citation copy enabled!</div>").append(jQuery("<div style='float:right'></div>").append( whatisthis ));
-
-    var popupInner = jQuery("<div style='padding:5px 5%;background-color:#333;color:#ccc;font-family:monospace;border:solid 1px #000'></div>" );
-    popup.append(popupInner);
-    popupInner.append(about, tools);
-    jQuery('body').append(popup);
-    popup.hide();
-    // don't hide the popup when we click inside it
-    popup.mouseup( function(event) { event.stopPropagation(); } );
-
-    var dotx;
-    var doty;
-
     // returns an object with the from and to char offset, or false
     function getSelectionRangeInContext(context) {
 
@@ -300,27 +306,27 @@ jQuery(document).ready(function(){
         meta.title = pageInfo.title;
         meta.timestamp = Math.floor(Date.now() / 1000);
 
-        var dom_meta = context.find( '.augmented_copy_metadata' );
-        if( dom_meta.length ) {
+        var html_meta = context.find( '.augmented_copy_metadata' );
+        if( html_meta.length ) {
             var published_dom = context.find( '.published' );
             if( published_dom.length ) { 
                 meta.published = published_dom.text();
             }
-            var dom_author = dom_meta.find( ".author" );
-            var dom_url = dom_meta.find( ".author_url" );
-            if( dom_author.length || dom_url.length ) {
+            var html_author = html_meta.find( ".author" );
+            var html_url = html_meta.find( ".author_url" );
+            if( html_author.length || html_url.length ) {
                 meta.author = {};
             }
-            if( dom_author.length ) { 
-                meta.author.name = dom_author.text();
+            if( html_author.length ) { 
+                meta.author.name = html_author.text();
             }
-            if( dom_url.length ) { 
-                meta.author.url = dom_url.text();
+            if( html_url.length ) { 
+                meta.author.url = html_url.text();
             }
             // using title from metadata block is preferable, if available
-            var dom_title = dom_meta.find( '.title' );
-            if( dom_title.length ) { 
-                meta.title = dom_title.text();
+            var html_title = html_meta.find( '.title' );
+            if( html_title.length ) { 
+                meta.title = html_title.text();
             }
         }
         return meta;
@@ -340,12 +346,12 @@ jQuery(document).ready(function(){
             just_shown_popup = true;
 
             // setup menu
-            menu.text("");
+            html_menu.text("");
 
             function makeMenu(option, text, fn) { 
                 // if we have options set and this menu item isn't in the options list, don't show it.
                 if( augmented_copy_options && !augmented_copy_options.includes(option) ) { return; } 
-                menu.append( 
+                html_menu.append( 
                     jQuery('<div>'+text+'</div>')
                     .css('padding','2px 10px').css('border','solid 1px black').css('cursor','pointer')
                     .mouseover(function(){jQuery(this).css('background-color','white').css('color','black');})
@@ -355,29 +361,32 @@ jQuery(document).ready(function(){
                         fn(event);
                         clearSelections();
                         window.getSelection().addRange(real_range);
-                        dotdiv.show();
-                        menu.hide(); 
-                        dot.show();
+                        html_ui_outer.show();
+                        html_menu.hide(); 
+                        html_dot.show();
                     })
                 );
             }
 
+
+
+
             function selectionToHtmlQuote( meta ) {
-                var dom_blockquote = jQuery( '<blockquote></blockquote>' )
+                var html_blockquote = jQuery( '<blockquote></blockquote>' )
                     .attr( "cite", meta.link )
                     .append( real_range.cloneContents() );
-                dom_cite = jQuery( '<cite style="display:block">- </cite>')
-                dom_cite.append( jQuery( "<a></a>").attr('href',meta.link ).text(meta.title) );
+                html_cite = jQuery( '<cite style="display:block">- </cite>')
+                html_cite.append( jQuery( "<a></a>").attr('href',meta.link ).text(meta.title) );
                 if( meta.author && meta.author.name ) {
-                    var dom_a = jQuery( "<a></a>").text( meta.author.name );
+                    var html_a = jQuery( "<a></a>").text( meta.author.name );
                     if( meta.author && meta.author.url ) {
-                        dom_a.attr( "href", meta.author.url );
+                        html_a.attr( "href", meta.author.url );
                     }
-                    dom_cite.append( jQuery.parseHTML( ", " ), dom_a );
+                    html_cite.append( jQuery.parseHTML( ", " ), html_a );
                 }
-                dom_cite.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
-                dom_blockquote.append( dom_cite );
-                return dom_blockquote.append;
+                html_cite.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
+                html_blockquote.append( html_cite );
+                return html_blockquote.append;
             } 
   
             function selectionToBibTeX( meta ) {
@@ -431,8 +440,8 @@ jQuery(document).ready(function(){
                 "citation",
                 "Copy citation", 
                 function(event){
-                    var dom_blockquote = selectionToHTMLQuote( meta );
-                    copyDOMToClipboard( dom_blockquote );
+                    var html_blockquote = selectionToHTMLQuote( meta );
+                    copyDOMToClipboard( html_blockquote );
                     flashMessage("Copied HTML Citation");
                 });
             makeMenu( 
@@ -472,17 +481,17 @@ jQuery(document).ready(function(){
                 "about",
                 "About this tool", 
                 function(event){
-                    popup.show();
-                    whatisthis.click();
+                    html_popup.show();
+                    html_what_is_this.click();
                 }
             );
     
             dotx = 20+e.pageX;
             doty = e.pageY;
-            dotdiv.css({'left':dotx+"px",'top':doty+"px"});
-            menu.hide(); 
-            dot.show(); 
-            dotdiv.show();
+            html_ui_outer.css({'left':dotx+"px",'top':doty+"px"});
+            html_menu.hide(); 
+            html_dot.show(); 
+            html_ui_outer.show();
             return true; // propagate event
         });
 
@@ -534,10 +543,10 @@ jQuery(document).ready(function(){
         // only flash if the option is on        
         if( augmented_copy_options && !augmented_copy_options.includes('flash') ) { return; } 
 
-        message.text(text);
-        message.show();
-        message.css({'left':(dotx-message.outerWidth()/2)+"px",'top':(doty-message.outerHeight()-10)+"px"});
-        message.fadeOut( 2000 );
+        html_message.text(text);
+        html_message.show();
+        html_message.css({'left':(dotx-html_message.outerWidth()/2)+"px",'top':(doty-html_message.outerHeight()-10)+"px"});
+        html_message.fadeOut( 2000 );
     }
 
     // assumes DOM nodes not jQuery
