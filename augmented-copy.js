@@ -368,9 +368,6 @@ jQuery(document).ready(function(){
                 );
             }
 
-
-
-
             function selectionToHtmlQuote( meta ) {
                 var html_blockquote = jQuery( '<blockquote></blockquote>' )
                     .attr( "cite", meta.link )
@@ -386,7 +383,7 @@ jQuery(document).ready(function(){
                 }
                 html_cite.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
                 html_blockquote.append( html_cite );
-                return html_blockquote.append;
+                return html_blockquote;
             } 
   
             function selectionToBibTeX( meta ) {
@@ -440,9 +437,9 @@ jQuery(document).ready(function(){
                 "citation",
                 "Copy citation", 
                 function(event){
-                    var html_blockquote = selectionToHTMLQuote( meta );
+                    var html_blockquote = selectionToHtmlQuote( meta );
                     copyDOMToClipboard( html_blockquote );
-                    flashMessage("Copied HTML Citation");
+                    flashMessage("Copied Citation");
                 });
             makeMenu( 
                 "bibtex",
@@ -492,6 +489,7 @@ jQuery(document).ready(function(){
             html_menu.hide(); 
             html_dot.show(); 
             html_ui_outer.show();
+
             return true; // propagate event
         });
 
