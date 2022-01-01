@@ -477,7 +477,6 @@ jQuery(document).ready(function(){
                 }
             );
     
-            //popup.show(); to stop sad Frode
             dotx = 20+e.pageX;
             doty = e.pageY;
             dotdiv.css({'left':dotx+"px",'top':doty+"px"});
