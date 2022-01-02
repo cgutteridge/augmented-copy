@@ -64,9 +64,27 @@ jQuery(document).ready(function(){
     jQuery('body').append(html_message);
     html_message.hide();
 
-    html_popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 120%; padding: 1em; width:90%;'></div>");
-    var html_about = jQuery( "<div><p>This is a javascript tool added to this website which modifies the copy behaviour to insert additional citation information into the HTML version of the clipboard. If you copy normally you shouldn't notice any undesired behaviour. However, the information about where and when you copied from are captured inside the attributes, and may be read if you paste into tools that are looking for it.</p><p>The blue dot gives a menu of other options including copying a high resolution link, which when followed back to this page will highlight the selection, and an option to copy a full HTML citation of the selected area in which the citation information will be visible.</p><p>This is part of a set of experiments to <a href='http://doug-50.info/'>celebrate the 50th aniversary</a> of the famous <a href='https://en.wikipedia.org/wiki/The_Mother_of_All_Demos'>Doug Englebart demo</a>, which isn't as famous as it should be!</p><p>Code by <a href='http://twitter.com/cgutteridge'>Christopher Gutteridge</a>, design by Christopher Gutteridge and Frode Hegland.</p></div>" ).hide();
+    html_popup = jQuery("<div style='position: fixed; bottom:5%; left: 5%; font-size: 100%; padding: 1em; width:90%;'></div>");
+    var html_about = jQuery( `
+<div>
+<p>This is a javascript tool added to this website which modifies the copy behaviour to insert additional citation information into the HTML version of the clipboard. 
+</p><p>
+If you copy normally you shouldn't notice any undesired behaviour. However, the information about where and when you copied from are captured inside the attributes, and may be read if you paste into tools that are looking for it.
+</p><p>
+The blue dot gives a menu of other options including copying a high resolution link, which when followed back to this page will highlight the selection, and an option to copy a full HTML citation of the selected area in which the citation information will be visible.
+</p><p>
+This is part of a set of experiments to celebrate the 50th anniversary of the famous Doug Englebart demo which isn't as famous as it should be!
+</p><p>
+The options to 'Copy As VM Citation’ and ‘Copy As BibTeX’ is integrated with <a href="https://visual-meta.info">Visual-Meta</a>. 
+</p><p>
+Code by <a href='https://twitter.com/cgutteridge'>Christopher Gutteridge</a>, design by Christopher Gutteridge and Frode Hegland.
+</p><p>
+Download this plugin from: https://github.com/cgutteridge/augmented-copy
+</p></div>
+`);
+
     html_about.find("a").css("color","white");
+    html_about.find("p").css("line-height","100%").css('margin-bottom','1em');
     html_about.append( jQuery( "<span>Thanks, hide this again</span>").css("background-color","rgb(255,255,255,0.1)").css("padding","0 10px").css( "cursor","pointer").click( function fn(){html_popup.hide();html_about.hide();html_tools.show();} ) );
     html_what_is_this = jQuery("<span>What is this?</span>").css("background-color","rgb(255,255,255,0.1)").css("padding","0 10px").css( "cursor","pointer").click( function fn(){html_popup.show();html_about.show();html_tools.hide();} );
     var html_tools = jQuery("<div>Enhanced citation copy enabled!</div>").append(jQuery("<div style='float:right'></div>").append( html_what_is_this ));
