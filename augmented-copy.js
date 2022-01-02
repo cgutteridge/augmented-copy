@@ -265,6 +265,21 @@ jQuery(document).ready(function(){
         document.execCommand('copy');        
         el.remove();
     };
+    const copyTextAndDOMToClipboard = (text,dom) => {
+        var el = jQuery( "<div></div>").css('position','absolute').css('left','-9999px').append("<div></div>").append( dom ).append("<div></div>");
+        jQuery( 'body' ).append( el );
+        jQuery( 'body' ).one( 'copy', ()=>{
+            var clipboardData = event.clipboardData || window.clipboardData || event.originalEvent.clipboardData;
+            clipboardData.setData('text/html', dom.html() );
+            clipboardData.setData('text/plain', text );
+            return false;
+        } );
+        var range = document.createRange();
+        range.selectNode(dom[0]);
+        window.getSelection().addRange(range);
+        document.execCommand('copy');        
+        el.remove();
+    }
 
     function clearSelections() {
         if (window.getSelection) {
@@ -348,6 +363,18 @@ jQuery(document).ready(function(){
                     }
                 },
                 {
+                    'id': "vmcitation",
+                    'label': "Copy VM citation", 
+                    'action': function(event){
+                        var html_blockquote = selectionToHtmlQuote( meta , real_range );
+                        var html_div = jQuery( '<div></div>' ).append( html_blockquote );
+                        var bibtex = selectionToBibTeX( meta );
+                        var text_quote = context_range.text+"\n\n"+bibtex;
+                        copyTextAndDOMToClipboard(text_quote, html_div );
+                        flashMessage("Copied VM Citation");
+                    }
+                },
+                {
                     'id': "bibtex",
                     'label': "Copy BibTeX", 
                     'action': function(event){
@@ -423,6 +450,7 @@ jQuery(document).ready(function(){
 
         /* initialise enhancd copy */
         context.on('copy', function(event) {
+console.log( "COPY", event );
             var real_range = window.getSelection().getRangeAt(0);
             var context_range = getSelectionRangeInContext(context);
             var meta = findMeta( context, context_range, loc_spec );

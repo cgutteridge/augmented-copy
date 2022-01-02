@@ -51,6 +51,7 @@ function augmented_copy_options() {
     return [
         "hires" => "Hires URL",
         "citation" => "Citation", 
+        "vmcitation" => "Visual-Meta Citation", 
         "bibtex" => "BibTeX", 
         "twitter" => "Tweet", 
         "facebook" => "Facebook", 
