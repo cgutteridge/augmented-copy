@@ -7,12 +7,6 @@ jQuery(document).ready(function(){
     // initialise selection capture
     var url = jQuery( "link[rel='canonical']" ).attr( 'href' );
 
-    // override the url for debugging purposes, not appropriate in final version. 
-    // maybe this should be per-context info instead
-    var pageInfo = {};
-    pageInfo.title = jQuery(document).prop('title');
-    pageInfo.url = window.location.href.replace( /#.*$/, '' );
-
     var contexts = {};
 
     // this is the actual article in the page that the reference looks at, ignoring the outer template which may change over time
@@ -299,11 +293,11 @@ jQuery(document).ready(function(){
 
     function findMeta( context, context_range, loc_spec ) {
         meta = {};
-        meta.link = pageInfo.url + "#" + loc_spec + ";char="+context_range.from+"-"+context_range.to;
-        meta.parent_link = pageInfo.url;
+        meta.parent_link = window.location.href.replace( /#.*$/, '' );
+        meta.link = meta.parent_link + "#" + loc_spec + ";char="+context_range.from+"-"+context_range.to;
         meta.chars = ""+context_range.from+"-"+context_range.to;
         meta.quote = context_range.text;
-        meta.title = pageInfo.title;
+        meta.title = jQuery(document).prop('title');
         meta.timestamp = Math.floor(Date.now() / 1000);
 
         var html_meta = context.find( '.augmented_copy_metadata' );
@@ -348,17 +342,79 @@ jQuery(document).ready(function(){
             // setup menu
             html_menu.text("");
 
-            function makeMenu(option, text, fn) { 
+            var menu = [ 
+                {
+                    'id': "hires",
+                    'label': "Copy hires URL", 
+                    'action': function(event){
+                        copyTextToClipboard( meta.link );
+                        flashMessage("Copied hires URL");
+                    }
+                },
+                {
+                    'id': "citation",
+                    'label': "Copy citation", 
+                    'action': function(event){
+                        var html_blockquote = selectionToHtmlQuote( meta , real_range );
+                        copyDOMToClipboard( html_blockquote );
+                        flashMessage("Copied Citation");
+                    }
+                },
+                {
+                    'id': "bibtex",
+                    'label': "Copy BibTeX", 
+                    'action': function(event){
+                        var bibtex = selectionToBibTeX( meta );
+                        copyTextToClipboard( bibtex );
+                        flashMessage("Copied BibTeX");
+                    }
+                },
+                {
+                    'id': "twitter",
+                    'label': "Tweet it", 
+                    'action': function(event){
+                        var tweet = "\""+trimText( context_range.text, 240 )+"\" - " + meta.link;
+                        var twitLink = "https://twitter.com/intent/tweet?text="+encodeURIComponent(tweet)+"&source=webclient";
+                        window.open(twitLink, 'newwindow', 'width=500, height=380'); 
+                    }
+                },
+                {
+                    'id': "facebook",
+                    'label': "Facebook it", 
+                    'action': function(event){
+                        var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(meta.link);
+                        window.open(faceLink, 'newwindow', 'width=500, height=380'); 
+                    }
+                },
+                {
+                    'id': "google",
+                    'label': "Google it", 
+                    'action': function(event){
+                        var googleLink = "https://www.google.com/search?q="+encodeURIComponent(context_range.text);
+                        window.open(googleLink, '_blank');
+                    }
+                },
+                {
+                    'id': "about",
+                    'label': "About this tool", 
+                    'action': function(event){
+                        html_popup.show();
+                        html_what_is_this.click();
+                    }
+                }
+            ];
+
+            menu.forEach( (item)=>{ 
                 // if we have options set and this menu item isn't in the options list, don't show it.
-                if( augmented_copy_options && !augmented_copy_options.includes(option) ) { return; } 
+                if( augmented_copy_options && !augmented_copy_options.includes(item.id) ) { return; } 
                 html_menu.append( 
-                    jQuery('<div>'+text+'</div>')
+                    jQuery('<div>'+item.label+'</div>')
                     .css('padding','2px 10px').css('border','solid 1px black').css('cursor','pointer')
                     .mouseover(function(){jQuery(this).css('background-color','white').css('color','black');})
                     .mouseout(function(){jQuery(this).css('background-color','black').css('color','white');})
                     .click(function(event) {
                         event.stopPropagation();
-                        fn(event);
+                        item.action(event);
                         clearSelections();
                         window.getSelection().addRange(real_range);
                         html_ui_outer.show();
@@ -366,175 +422,114 @@ jQuery(document).ready(function(){
                         html_dot.show();
                     })
                 );
-            }
+            } );
 
-            function selectionToHtmlQuote( meta ) {
-                var html_blockquote = jQuery( '<blockquote></blockquote>' )
-                    .attr( "cite", meta.link )
-                    .append( real_range.cloneContents() );
-                html_cite = jQuery( '<cite style="display:block">- </cite>')
-                html_cite.append( jQuery( "<a></a>").attr('href',meta.link ).text(meta.title) );
-                if( meta.author && meta.author.name ) {
-                    var html_a = jQuery( "<a></a>").text( meta.author.name );
-                    if( meta.author && meta.author.url ) {
-                        html_a.attr( "href", meta.author.url );
-                    }
-                    html_cite.append( jQuery.parseHTML( ", " ), html_a );
-                }
-                html_cite.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
-                html_blockquote.append( html_cite );
-                return html_blockquote;
-            } 
-  
-            function selectionToBibTeX( meta ) {
-                if( meta.author && meta.author.name ) {
-                    var id = "";
-                    id+=meta.author.name.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
-                    id+=":";
-                }
-                id+=meta.title.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
-                if( meta.published ) {
-                    id+=":"+meta.published.substring(0,10);
-                }
-                id+=":"+meta.chars;
-   
-                // escape bibtex special chars {, " or $
-                function bibesc( text ) {
-                    return text.replace( /([\{\"\$])/, '\\$1' );
-                }
-
-                // nb this isn't yet doing any escaping on the strings which isn't ideal
-                var bibtex = "";
-                bibtex += "@article{"+id+",\n";
-                if( meta.author && meta.author.name ) {
-                        bibtex += "author = {"+bibesc(meta.author.name)+"},\n";
-                }
-                bibtex += "    title = {"+bibesc(meta.title)+"},\n";
-                if( meta.published ) {
-                    var mmap = { 
-                        '01':'jan', '02':'feb', '03':'mar', '04':'apr', '05':'may', '06':'jun',
-                        '07':'jul', '08':'aug', '09':'sep', '10':'oct', '11':'nov', '12':'dec' };
-                        bibtex += "    year = {"+bibesc(meta.published.substring(0,4))+"},\n";
-                        bibtex += "    month = {"+bibesc(mmap[meta.published.substring(5,7)])+"},\n";
-                        bibtex += "    day = {"+bibesc(meta.published.substring(8,10))+"},\n";
-                }
-                bibtex += "    url = {"+bibesc(meta.link)+"},\n";
-                bibtex += "    parenturl = {"+bibesc(meta.parent_link)+"},\n";
-                bibtex += "    charscited = {"+bibesc(meta.chars)+"},\n";
-                bibtex += "    quote = {"+bibesc(meta.quote)+"}\n";
-                bibtex += "}\n";
-		return bibtex;
-            }
- 
-            makeMenu( 
-                "hires",
-                "Copy hires URL", 
-                function(event){
-                    copyTextToClipboard( meta.link );
-                    flashMessage("Copied hires URL");
-                });
-            makeMenu( 
-                "citation",
-                "Copy citation", 
-                function(event){
-                    var html_blockquote = selectionToHtmlQuote( meta );
-                    copyDOMToClipboard( html_blockquote );
-                    flashMessage("Copied Citation");
-                });
-            makeMenu( 
-                "bibtex",
-                "Copy BibTeX", 
-                function(event){
-                    var bibtex = selectionToBibTeX( meta );
-                    copyTextToClipboard( bibtex );
-                    flashMessage("Copied BibTeX");
-                });
-            makeMenu( 
-                "twitter",
-                "Tweet it", 
-                function(event){
-                    var tweet = "\""+trimText( context_range.text, 240 )+"\" - " + meta.link;
-                    var twitLink = "https://twitter.com/intent/tweet?text="+encodeURIComponent(tweet)+"&source=webclient";
-                    window.open(twitLink, 'newwindow', 'width=500, height=380'); 
-                }
-            );
-            makeMenu( 
-                "facebook",
-                "Facebook it", 
-                function(event){
-                    var faceLink = "https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(meta.link);
-                    window.open(faceLink, 'newwindow', 'width=500, height=380'); 
-                }
-            );
-            makeMenu( 
-                "google",
-                "Google it", 
-                function(event){
-                    var googleLink = "https://www.google.com/search?q="+encodeURIComponent(context_range.text);
-                    window.open(googleLink, '_blank');
-                }
-            );
-            makeMenu( 
-                "about",
-                "About this tool", 
-                function(event){
-                    html_popup.show();
-                    html_what_is_this.click();
-                }
-            );
-    
             dotx = 20+e.pageX;
             doty = e.pageY;
             html_ui_outer.css({'left':dotx+"px",'top':doty+"px"});
             html_menu.hide(); 
             html_dot.show(); 
             html_ui_outer.show();
-
+ 
             return true; // propagate event
         });
-
-
 
         /* initialise enhancd copy */
         context.on('copy', function(event) {
             var real_range = window.getSelection().getRangeAt(0);
             var context_range = getSelectionRangeInContext(context);
+            var meta = findMeta( context, context_range, loc_spec );
+
             if( !context_range ) { 
                 return true; // propagate event
             }
-    
-            var link = contextUrl + ";char="+context_range.from+"-"+context_range.to;
-            var author = findAuthor( context );
-            var published = findPublished( context );
-
-            // create the thing we really want to copy
-            var citation = jQuery('<span></span>');
-            citation.attr('data-citation-source', link );
-            citation.attr('data-citation-title', pageInfo.title );
-            citation.attr('data-citation-timestamp',Math.floor(Date.now() / 1000));
-            if( author && author.name ) {
-                citation.attr('data-citation-author-name', author.name );
-            }
-            if( author && author.url ) {
-                citation.attr('data-citation-author-url', author.url );
-            }
-    
-            citation.append(real_range.cloneContents());
-            var wrapper = jQuery('<div></div>');
-            wrapper.append(citation);
-    
-            var clipboardData = event.clipboardData || window.clipboardData || event.originalEvent.clipboardData;
-            clipboardData.setData('text/html', wrapper.html() );
-            clipboardData.setData('text/plain', wrapper.text() );
-
-            // remove temporary DOM object
-            citation.remove();
-    
+   
+            var html_blockquote = selectionToAugmentedCitation( meta , real_range );
+            copyDOMToClipboard( html_blockquote );
             flashMessage("Copied augmented citation");
 
             return true; // stop the normal copy op
         });
 
+    } // end of activateContextArea()
+
+    function selectionToAugmentedCitation( meta, real_range ) {
+        // create the thing we really want to copy
+        var citation = jQuery('<span></span>');     
+
+        citation.attr('data-citation-source', meta.link );
+        citation.attr('data-citation-title', meta.title );
+        citation.attr('data-citation-timestamp',meta.timestamp );
+        if( meta.author && meta.author.name ) {
+            citation.attr('data-citation-author-name', meta.author.name );
+        }
+        if( meta.author && meta.author.url ) {
+            citation.attr('data-citation-author-url', meta.author.url );
+        }
+
+        citation.append(real_range.cloneContents());
+        var wrapper = jQuery('<div></div>');
+        wrapper.append(citation);
+
+        return citation; 
+    }
+
+    function selectionToHtmlQuote( meta, real_range ) {
+        var html_blockquote = jQuery( '<blockquote></blockquote>' )
+            .attr( "cite", meta.link )
+            .append( real_range.cloneContents() );
+        html_cite = jQuery( '<cite style="display:block">- </cite>')
+        html_cite.append( jQuery( "<a></a>").attr('href',meta.link ).text(meta.title) );
+        if( meta.author && meta.author.name ) {
+            var html_a = jQuery( "<a></a>").text( meta.author.name );
+            if( meta.author && meta.author.url ) {
+                html_a.attr( "href", meta.author.url );
+            }
+            html_cite.append( jQuery.parseHTML( ", " ), html_a );
+        }
+        html_cite.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
+        html_blockquote.append( html_cite );
+        return html_blockquote;
+    } 
+
+    function selectionToBibTeX( meta ) {
+        if( meta.author && meta.author.name ) {
+            var id = "";
+            id+=meta.author.name.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
+            id+=":";
+        }
+        id+=meta.title.toLowerCase().replace( /[^0-9a-z ]/g, '' ).replace( / +/g, '-' );
+        if( meta.published ) {
+            id+=":"+meta.published.substring(0,10);
+        }
+        id+=":"+meta.chars;
+
+        // escape bibtex special chars {, " or $
+        function bibesc( text ) {
+            return text.replace( /([\{\"\$])/, '\\$1' );
+        }
+
+        // nb this isn't yet doing any escaping on the strings which isn't ideal
+        var bibtex = "";
+        bibtex += "@article{"+id+",\n";
+        if( meta.author && meta.author.name ) {
+                bibtex += "author = {"+bibesc(meta.author.name)+"},\n";
+        }
+        bibtex += "    title = {"+bibesc(meta.title)+"},\n";
+        if( meta.published ) {
+            var mmap = { 
+                '01':'jan', '02':'feb', '03':'mar', '04':'apr', '05':'may', '06':'jun',
+                '07':'jul', '08':'aug', '09':'sep', '10':'oct', '11':'nov', '12':'dec' };
+                bibtex += "    year = {"+bibesc(meta.published.substring(0,4))+"},\n";
+                bibtex += "    month = {"+bibesc(mmap[meta.published.substring(5,7)])+"},\n";
+                bibtex += "    day = {"+bibesc(meta.published.substring(8,10))+"},\n";
+        }
+        bibtex += "    url = {"+bibesc(meta.link)+"},\n";
+        bibtex += "    parenturl = {"+bibesc(meta.parent_link)+"},\n";
+        bibtex += "    charscited = {"+bibesc(meta.chars)+"},\n";
+        bibtex += "    quote = {"+bibesc(meta.quote)+"}\n";
+        bibtex += "}\n";
+        return bibtex;
     }
 
     function flashMessage( text ) {
