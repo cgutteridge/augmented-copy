@@ -1,14 +1,14 @@
 <?php
 /**
  * @package Augmented Copy
- * @version 0.4
+ * @version 0.5
  */
 /*
 Plugin Name: Augmented Copy
 Plugin URI: https://github.com/cgutteridge/augmented-copy
 Description: Javascript to add citations and other niftiness to copied text.
 Author: Christopher Gutteridge
-Version: 0.4
+Version: 0.5
 Author URI: http://www.ecs.soton.ac.uk/people/cjg
 */
 
