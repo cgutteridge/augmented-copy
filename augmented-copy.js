@@ -528,7 +528,7 @@ console.log( "COPY", event );
         var bibtex = "";
         bibtex += "@article{"+id+",\n";
         if( meta.author && meta.author.name ) {
-                bibtex += "author = {"+bibesc(meta.author.name)+"},\n";
+                bibtex += "    author = {"+bibesc(meta.author.name)+"},\n";
         }
         bibtex += "    title = {"+bibesc(meta.title)+"},\n";
         if( meta.published ) {
