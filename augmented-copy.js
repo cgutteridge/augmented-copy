@@ -450,7 +450,6 @@ jQuery(document).ready(function(){
 
         /* initialise enhancd copy */
         context.on('copy', function(event) {
-console.log( "COPY", event );
             var real_range = window.getSelection().getRangeAt(0);
             var context_range = getSelectionRangeInContext(context);
             var meta = findMeta( context, context_range, loc_spec );
