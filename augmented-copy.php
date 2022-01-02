@@ -49,15 +49,15 @@ function augmented_copy_filter_the_content_in_the_main_loop( $content ) {
  
 function augmented_copy_options() {
     return [
-        "hires" => "Hires URL",
-        "citation" => "Citation", 
-        "vmcitation" => "Visual-Meta Citation", 
-        "bibtex" => "BibTeX", 
+        "hires" => "Copy Hires URL",
+        "citation" => "Copy Citation", 
+        "vmcitation" => "Copy Visual-Meta Citation", 
+        "bibtex" => "Copy BibTeX", 
         "twitter" => "Tweet", 
         "facebook" => "Facebook", 
         "google" => "Google", 
         "about" => "About",
-        "flash" => "Flash messages"
+        "flash" => "Show popup confirmation messages"
     ];
 }
 
