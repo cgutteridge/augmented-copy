@@ -119,7 +119,7 @@ jQuery(document).ready(function(){
         var range = l2[1].split( /-/ );
         var startInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>[[</div>");
         var endInsert = jQuery( "<div class='ultralink-insert ultralink-ignore' style='vertical-align:middle;display:inline-block;font-weight:normal;font-size:small; color: #888;padding:0px 0em;border: 0; margin: 0;font-size:200%'>]]</div>");
-        var startLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='background-color:#000;color:#fff;padding:0px 1em; border-radius:1em'>linked-range start</div><div style='text-align:center;color:#000;line-height:70%;font-size:200%'>▼</div></div>" );
+        var startLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='background-color:#000;color:#fff;padding:0px 1em; border-radius:1em'>linked-range start</div><div style='text-align:center;color:#000;line-height:50%;font-size:200%'>▼</div></div>" );
         var endLabel = jQuery( "<div style='font-size:80%;position:absolute;top:100px;left:0px' class='ultralink-tooltip ultralink-ignore;text-align:center'><div style='text-align:center;color:#000;line-height:50%;font-size:200%'>▲</div><div style='background-color:#000;color:#fff;padding:0px 1em;border-radius:1em;'>linked-range end</div></div>" );
         jQuery('body').append( startLabel );
         jQuery('body').append( endLabel );
@@ -151,19 +151,6 @@ jQuery(document).ready(function(){
             startLabel.show();
             endLabel.show();
         },1000);
-    }
-
-    function trimText( text, maxLength ) {
-        if( text.length <= maxLength ) {
-            return text;
-        }
-        return text.substr( 0, maxLength-1 )+"…";
-    }
-
-    function toHTML( jqThing ) {
-        var div = jQuery( "<div></div>" );
-        div.append( jqThing.clone() );
-        return div.html();
     }
 
     // container is a DOM node not jQuery, as we need to look at things jQuery hides from us
@@ -530,6 +517,13 @@ jQuery(document).ready(function(){
         bibtex += "    quote = {"+bibesc(meta.quote)+"}\n";
         bibtex += "}\n";
         return bibtex;
+    }
+
+    function trimText( text, maxLength ) {
+        if( text.length <= maxLength ) {
+            return text;
+        }
+        return text.substr( 0, maxLength-1 )+"…";
     }
 
     function flashMessage( text ) {
