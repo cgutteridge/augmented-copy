@@ -509,9 +509,25 @@ Download this plugin from: https://github.com/cgutteridge/augmented-copy
     function selectionToHtmlQuote( meta, real_range ) {
         var html_blockquote = jQuery( '<blockquote></blockquote>' )
             .attr( "cite", meta.link );
-        //html_blockquote.append( jQuery.parseHTML( "“" ) );
         html_blockquote.append( real_range.cloneContents() );
-        //html_blockquote.append( jQuery.parseHTML( "”" ) );
+
+        // find the first and last text element in the quotation
+        var nodes = eachNode( html_blockquote[0] );
+        var first;
+        var last;
+        for( var i=0; i<nodes.length; ++i ) {
+            if( nodes[i].nodeName == '#text' &&  nodes[i].data.trim() != "" ) {
+              last = nodes[i];
+              if( !first ) { first = nodes[i]; }
+            }
+        }
+        if( first ) {
+            first.data = '“' + first.data;
+        }
+        if( first ) {
+            last.data = last.data + '”';
+        }
+
         html_cite = jQuery( '<cite style="display:block"></cite>')
         html_cite.append( jQuery( "<a style='font-style:italic'></a>").attr('href',meta.link ).text(meta.title) );
         if( meta.author && meta.author.name ) {
@@ -528,6 +544,31 @@ Download this plugin from: https://github.com/cgutteridge/augmented-copy
         html_blockquote.append( jQuery.parseHTML( "<div style='font-style:italic'>Retrieved "+(new Date().toDateString())+"</div>"));
         return html_blockquote;
     } 
+    
+    // from https://developer.mozilla.org/en-US/docs/Web/API/Node
+    function eachNode(rootNode, callback) {
+        if (!callback) {
+            const nodes = []
+            eachNode(rootNode, function(node) {
+                nodes.push(node)
+            })
+            return nodes
+        }
+    
+        if (false === callback(rootNode)) {
+            return false
+        }
+    
+        if (rootNode.hasChildNodes()) {
+            const nodes = rootNode.childNodes
+            for (let i = 0, l = nodes.length; i < l; ++i) {
+                if (false === eachNode(nodes[i], callback)) {
+                    return;
+                }
+            }
+        }
+    }
+
 
     function selectionToBibTeX( meta ) {
         if( meta.author && meta.author.name ) {
