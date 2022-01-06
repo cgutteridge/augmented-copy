@@ -50,8 +50,8 @@ function augmented_copy_filter_the_content_in_the_main_loop( $content ) {
 function augmented_copy_options() {
     return [
         "hires" => "Copy Hires URL",
-        "citation" => "Copy Citation", 
-        "vmcitation" => "Copy Visual-Meta Citation", 
+        "citation" => "Copy Quote", 
+        "vmcitation" => "Copy Visual-Meta Quote", 
         "bibtex" => "Copy BibTeX", 
         "twitter" => "Tweet", 
         "facebook" => "Facebook", 

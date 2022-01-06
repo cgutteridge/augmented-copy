@@ -75,7 +75,7 @@ The blue dot gives a menu of other options including copying a high resolution l
 </p><p>
 This is part of a set of experiments to celebrate the 50th anniversary of the famous Doug Englebart demo which isn't as famous as it should be!
 </p><p>
-The options to 'Copy As VM Citation’ and ‘Copy As BibTeX’ is integrated with <a href="https://visual-meta.info">Visual-Meta</a>. 
+The options to 'Copy As VM Quote’ and ‘Copy As BibTeX’ is integrated with <a href="https://visual-meta.info">Visual-Meta</a>. 
 </p><p>
 Code by <a href='https://twitter.com/cgutteridge'>Christopher Gutteridge</a>, design by Christopher Gutteridge and Frode Hegland.
 </p><p>
@@ -365,7 +365,7 @@ Download this plugin from: https://github.com/cgutteridge/augmented-copy
             var menu = [ 
                 {
                     'id': "hires",
-                    'label': "Copy hires URL", 
+                    'label': "Copy Hires URL", 
                     'action': function(event){
                         copyTextToClipboard( meta.link );
                         flashMessage("Copied hires URL");
@@ -373,23 +373,23 @@ Download this plugin from: https://github.com/cgutteridge/augmented-copy
                 },
                 {
                     'id': "citation",
-                    'label': "Copy citation", 
+                    'label': "Copy Quote", 
                     'action': function(event){
                         var html_blockquote = selectionToHtmlQuote( meta , real_range );
                         copyDOMToClipboard( html_blockquote );
-                        flashMessage("Copied Citation");
+                        flashMessage("Copied Quote");
                     }
                 },
                 {
                     'id': "vmcitation",
-                    'label': "Copy VM citation", 
+                    'label': "Copy VM Quote", 
                     'action': function(event){
                         var html_blockquote = selectionToHtmlQuote( meta , real_range );
                         var html_div = jQuery( '<div></div>' ).append( html_blockquote );
                         var bibtex = selectionToBibTeX( meta );
                         var text_quote = context_range.text+"\n\n"+bibtex;
                         copyTextAndDOMToClipboard(text_quote, html_div );
-                        flashMessage("Copied VM Citation");
+                        flashMessage("Copied VM Quote");
                     }
                 },
                 {
@@ -428,7 +428,7 @@ Download this plugin from: https://github.com/cgutteridge/augmented-copy
                 },
                 {
                     'id': "about",
-                    'label': "About this tool", 
+                    'label': "About this Tool", 
                     'action': function(event){
                         html_popup.show();
                         html_what_is_this.click();
@@ -478,7 +478,7 @@ Download this plugin from: https://github.com/cgutteridge/augmented-copy
    
             var html_blockquote = selectionToAugmentedCitation( meta , real_range );
             copyDOMToClipboard( html_blockquote );
-            flashMessage("Copied augmented citation");
+            flashMessage("Copied augmented quote");
 
             return true; // stop the normal copy op
         });
