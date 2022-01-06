@@ -322,7 +322,7 @@ Download this plugin from: https://github.com/cgutteridge/augmented-copy
 
         var html_meta = context.find( '.augmented_copy_metadata' );
         if( html_meta.length ) {
-            var published_dom = context.find( '.published' );
+            var published_dom = html_meta.find( '.published' );
             if( published_dom.length ) { 
                 meta.published = published_dom.text();
             }
@@ -508,19 +508,24 @@ Download this plugin from: https://github.com/cgutteridge/augmented-copy
 
     function selectionToHtmlQuote( meta, real_range ) {
         var html_blockquote = jQuery( '<blockquote></blockquote>' )
-            .attr( "cite", meta.link )
-            .append( real_range.cloneContents() );
-        html_cite = jQuery( '<cite style="display:block">- </cite>')
-        html_cite.append( jQuery( "<a></a>").attr('href',meta.link ).text(meta.title) );
+            .attr( "cite", meta.link );
+        //html_blockquote.append( jQuery.parseHTML( "“" ) );
+        html_blockquote.append( real_range.cloneContents() );
+        //html_blockquote.append( jQuery.parseHTML( "”" ) );
+        html_cite = jQuery( '<cite style="display:block"></cite>')
+        html_cite.append( jQuery( "<a style='font-style:italic'></a>").attr('href',meta.link ).text(meta.title) );
         if( meta.author && meta.author.name ) {
-            var html_a = jQuery( "<a></a>").text( meta.author.name );
+            var html_a = jQuery( "<a style='font-weight:bold'></a>").text( meta.author.name );
             if( meta.author && meta.author.url ) {
                 html_a.attr( "href", meta.author.url );
             }
             html_cite.append( jQuery.parseHTML( ", " ), html_a );
         }
-        html_cite.append( jQuery.parseHTML( ", retrieved "+(new Date().toDateString())));
+        if( meta.published ) {
+            html_cite.append( jQuery.parseHTML( ", <span>"+(new Date(meta.published).toDateString())+"</div>" ));
+        }
         html_blockquote.append( html_cite );
+        html_blockquote.append( jQuery.parseHTML( "<div style='font-style:italic'>Retrieved "+(new Date().toDateString())+"</div>"));
         return html_blockquote;
     } 
 
